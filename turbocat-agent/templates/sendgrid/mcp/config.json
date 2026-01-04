@@ -1,0 +1,22 @@
+{
+  "name": "sendgrid",
+  "version": "1.0.0",
+  "description": "SendGrid email integration for transactional emails",
+  "mcpServers": {
+    "sendgrid": {
+      "command": "npx",
+      "args": ["-y", "@sendgrid/mcp-server"],
+      "env": {
+        "SENDGRID_API_KEY": "${SENDGRID_API_KEY}"
+      }
+    }
+  },
+  "capabilities": [
+    "send",
+    "templates",
+    "contacts",
+    "lists"
+  ],
+  "required": false,
+  "documentation": "https://docs.sendgrid.com"
+}

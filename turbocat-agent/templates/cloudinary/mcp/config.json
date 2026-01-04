@@ -1,0 +1,23 @@
+{
+  "name": "cloudinary",
+  "version": "1.0.0",
+  "description": "Cloudinary media management for image and video uploads",
+  "mcpServers": {
+    "cloudinary": {
+      "command": "npx",
+      "args": ["-y", "@cloudinary/mcp-server"],
+      "env": {
+        "CLOUDINARY_URL": "cloudinary://${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}@${CLOUDINARY_CLOUD_NAME}"
+      }
+    }
+  },
+  "capabilities": [
+    "upload",
+    "transform",
+    "optimize",
+    "delete",
+    "search"
+  ],
+  "required": false,
+  "documentation": "https://cloudinary.com/documentation"
+}

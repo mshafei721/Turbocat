@@ -1,0 +1,40 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Design Tokens/Introduction" />
+
+# Turbocat Design System
+
+Welcome to the Turbocat Design System documentation. This Storybook contains all the design tokens and components used throughout the application.
+
+## Brand Colors
+
+- **Primary (Orange):** #f97316 - Used for primary actions, CTAs, and brand elements
+- **Secondary (Blue):** #3b82f6 - Used for links, secondary actions, and informational elements
+
+## Theme
+
+Turbocat uses a **dark-first** approach, following the convention of modern developer tools. Users can switch to light mode if preferred.
+
+## Token Categories
+
+- **Colors:** Full color palette including primary, secondary, neutral, and semantic colors
+- **Typography:** Font families, sizes, weights, and letter spacing
+- **Spacing:** Consistent spacing scale from 0 to 64 (256px)
+- **Shadows:** Light and dark mode optimized shadows with glow effects
+- **Animations:** Duration, easing, and keyframe presets
+
+## Usage
+
+Import design tokens in your components:
+
+```tsx
+import { colors, typography, spacing } from '@/lib/design-tokens'
+```
+
+Or use Tailwind classes directly:
+
+```tsx
+<button className="bg-orange-500 hover:bg-orange-600">
+  Primary Action
+</button>
+```

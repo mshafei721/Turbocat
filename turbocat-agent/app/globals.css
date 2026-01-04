@@ -1,0 +1,258 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@source "../node_modules/streamdown/dist/*.js";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --font-sans: var(--font-geist-sans), var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), 'JetBrains Mono', Consolas, monospace;
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-ring: hsl(var(--ring));
+  --color-input: hsl(var(--input));
+  --color-border: hsl(var(--border));
+  --color-destructive: hsl(var(--destructive));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card: hsl(var(--card));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Custom color scales - Orange (Primary) */
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
+  --color-orange-950: #431407;
+
+  /* Custom color scales - Blue (Secondary) */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-blue-950: #172554;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Light mode - Orange primary */
+  --background: 0 0% 98%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 24.6 95% 53.1%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 24.6 95% 53.1%;
+  --chart-1: 24.6 95% 53.1%;
+  --chart-2: 217.2 91.2% 59.8%;
+  --chart-3: 142.1 76.2% 36.3%;
+  --chart-4: 47.9 95.8% 53.1%;
+  --chart-5: 0 84.2% 60.2%;
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 240 5.3% 26.1%;
+  --sidebar-primary: 24.6 95% 53.1%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 4.8% 95.9%;
+  --sidebar-accent-foreground: 240 5.9% 10%;
+  --sidebar-border: 240 5.9% 90%;
+  --sidebar-ring: 24.6 95% 53.1%;
+}
+
+.dark {
+  /* Dark mode - Orange primary, dark background */
+  --background: 0 0% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 7.8%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 7.8%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 20.5 90.2% 48.2%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 20.5 90.2% 48.2%;
+  --chart-1: 20.5 90.2% 48.2%;
+  --chart-2: 217.2 91.2% 59.8%;
+  --chart-3: 142.1 70.6% 45.3%;
+  --chart-4: 47.9 95.8% 53.1%;
+  --chart-5: 0 84.2% 60.2%;
+  --sidebar: 0 0% 7.8%;
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-primary: 20.5 90.2% 48.2%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 240 3.7% 15.9%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-border: 240 3.7% 15.9%;
+  --sidebar-ring: 20.5 90.2% 48.2%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom animations */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-down {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Git Diff Viewer Mobile Optimizations */
+.git-diff-view-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Make diff viewer more mobile-friendly */
+@media (max-width: 768px) {
+  .git-diff-view-container {
+    font-size: 11px;
+  }
+
+  /* Ensure horizontal scrolling works on mobile */
+  .git-diff-view-container > div {
+    min-width: max-content;
+  }
+
+  /* Adjust line numbers and content for mobile */
+  .git-diff-view-container .diff-line-num {
+    padding: 2px 4px;
+    font-size: 10px;
+  }
+
+  .git-diff-view-container .diff-line-content {
+    padding: 2px 4px;
+  }
+}
+
+/* Orange glow effect for buttons */
+.glow-orange {
+  box-shadow: 0 0 20px rgb(249 115 22 / 0.3);
+}
+
+.hover\:glow-orange:hover {
+  box-shadow: 0 0 30px rgb(249 115 22 / 0.4);
+}
+
+/* Blue glow effect */
+.glow-blue {
+  box-shadow: 0 0 20px rgb(59 130 246 / 0.3);
+}
+
+.hover\:glow-blue:hover {
+  box-shadow: 0 0 30px rgb(59 130 246 / 0.4);
+}
