@@ -1,0 +1,23 @@
+task_groups:
+  - name: Font Configuration
+    claude_code_subagent: nextjs-developer
+  - name: Design Tokens (CSS Custom Properties)
+    claude_code_subagent: frontend-developer
+  - name: shadcn/ui Configuration Update
+    claude_code_subagent: frontend-developer
+  - name: TypeScript Design Tokens
+    claude_code_subagent: frontend-developer
+  - name: Storybook Setup
+    claude_code_subagent: frontend-developer
+  - name: Token Documentation Stories
+    claude_code_subagent: frontend-developer
+  - name: Component Updates
+    claude_code_subagent: frontend-developer
+  - name: Theme Toggle Enhancement
+    claude_code_subagent: nextjs-developer
+  - name: Metadata and Favicon
+    claude_code_subagent: nextjs-developer
+  - name: Accessibility Verification
+    claude_code_subagent: frontend-developer
+  - name: Testing and Final Verification
+    claude_code_subagent: test-automator

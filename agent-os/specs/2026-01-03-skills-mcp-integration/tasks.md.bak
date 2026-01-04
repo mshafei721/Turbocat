@@ -1,0 +1,1050 @@
+# Tasks: Skills & MCP Integration
+
+## Overview
+
+This task breakdown implements Phase 3 of Turbocat - the complete extensibility layer enabling enhanced AI capabilities through a Skills system and comprehensive MCP (Model Context Protocol) integrations.
+
+**Total Estimated Time:** 8-10 weeks (after Phase 2 completes)
+**Total Task Groups:** 15
+**Key Deliverables:**
+- Skills System Architecture with SKILL.md format
+- Core Skills: database-design, api-integration, ui-component, supabase-setup
+- MCP Server Manager with health monitoring
+- MCP Integrations: Exa, Firecrawl, GitHub, Supabase, Context7, Sequential Thinking
+- Integration Templates: Stripe, SendGrid, Cloudinary
+- Full execution trace visibility UI
+
+---
+
+## Prerequisites
+
+Before starting implementation, verify:
+
+- [ ] Phase 2 (Design System Foundation) is complete
+  - [ ] Design tokens available at `lib/design-tokens.ts`
+  - [ ] Storybook running and documented
+  - [ ] Component Gallery database schema exists
+- [ ] Access to turbocat-agent codebase
+- [ ] External service API keys configured in `.env`:
+  - [ ] `EXA_API_KEY` - Exa Search
+  - [ ] `FIRECRAWL_API_KEY` - Firecrawl
+  - [ ] `GITHUB_TOKEN` - GitHub (with repo scope)
+  - [ ] `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+  - [ ] `CONTEXT7_API_KEY` - Context7 (if required)
+- [ ] Verify Vercel Pro subscription active (for sandbox execution)
+
+---
+
+## Task Groups
+
+### Group 1: MCP Connector Enhancement (Foundation)
+**Estimated Time:** 1 week (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/manager.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/connection.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/types.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/config.ts`
+
+**Dependencies:** None (can start immediately)
+
+- [x] 1.1 Write 4 focused tests for MCP Server Manager
+  - Test server registration adds config to registry
+  - Test connect creates and stores connection
+  - Test getStatus returns health for all connections
+  - Test disconnect removes connection from registry
+
+- [x] 1.2 Create MCP types and interfaces
+  - Define `MCPServerConfig` interface (name, type, command, env, capabilities)
+  - Define `MCPConnectionStatus` interface (status, lastHealthCheck, rateLimit)
+  - Define `MCPCapability` interface (name, description, parameters)
+  - Export all types from `lib/mcp/types.ts`
+
+  ```powershell
+  # Create the mcp directory
+  mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\lib\mcp
+  ```
+
+- [x] 1.3 Implement MCP Server Manager
+  - Create `MCPServerManager` class
+  - Implement `registerServer(config)` - adds server to registry
+  - Implement `connect(serverName)` - creates connection
+  - Implement `disconnect(serverName)` - closes and removes connection
+  - Implement `getStatus()` - returns health status for all servers
+  - Implement `getAvailableTools()` - lists capabilities per server
+
+- [x] 1.4 Implement MCP Connection wrapper
+  - Create `MCPConnection` class for individual connections
+  - Implement `healthCheck()` - verify connection is alive
+  - Implement `invoke(capability, params)` - call MCP tool
+  - Implement `close()` - cleanup connection
+  - Handle rate limiting with exponential backoff
+
+- [x] 1.5 Create MCP configuration file
+  - Define default server configurations in `lib/mcp/config.ts`
+  - Support environment variable substitution (${VAR_NAME})
+  - Include rate limit defaults for each server
+  - Export configuration loader function
+
+- [x] 1.6 Run MCP Manager tests
+  - Execute tests from 1.1
+  - Verify all 4 tests pass
+
+  ```powershell
+  cd D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent
+  pnpm test lib/mcp
+  ```
+
+**Acceptance Criteria:**
+- MCPServerManager can register, connect, and disconnect servers
+- Health checks return accurate status
+- Rate limiting is tracked per server
+- All 4 tests pass ✅ (16 tests total: 7 Context7 + 9 Sequential Thinking)
+
+---
+
+### Group 2: MCP Status UI Components
+**Estimated Time:** 3 days (S effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/mcp/mcp-status-panel.tsx`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/mcp/mcp-server-card.tsx`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/mcp/mcp-connection-indicator.tsx`
+
+**Dependencies:** Group 1
+
+- [x] 2.1 Write 3 focused tests for MCP UI components
+  - Test MCPStatusPanel renders all server cards
+  - Test MCPServerCard shows correct status indicator color
+  - Test connection indicator reflects status changes
+
+- [x] 2.2 Create MCPConnectionIndicator component
+  - Display status with appropriate icon (check, x, clock, loader)
+  - Color-code: success-500 (connected), error-500 (disconnected/error), warning-500 (rate limited), blue-500 (connecting)
+  - Include text label for accessibility
+  - Use design tokens from Phase 2
+
+- [x] 2.3 Create MCPServerCard component
+  - Display server name, status indicator, request count
+  - Show rate limit remaining/reset
+  - Include "Configure" button for disconnected servers
+  - Display error message if in error state
+  - Responsive design (stack on mobile)
+
+- [x] 2.4 Create MCPStatusPanel component
+  - Grid layout for server cards (3 columns on desktop, 2 on tablet, 1 on mobile)
+  - "Refresh All" button to update all statuses
+  - "View Logs" button linking to log viewer
+  - Collapsible panel with toggle
+
+- [x] 2.5 Create Storybook stories for MCP components
+  - Story for each component with various states
+  - Dark/light theme support
+  - Accessibility checks enabled
+
+- [x] 2.6 Run MCP UI tests
+  - Execute tests from 2.1
+  - Verify all 3 tests pass
+  - Check Storybook renders without errors
+
+**Acceptance Criteria:**
+- Status panel displays all MCP servers
+- Connection status updates in real-time
+- Accessible with keyboard navigation
+- All 3 tests pass
+
+---
+
+### Group 3: Exa Search MCP Integration
+**Estimated Time:** 2-3 days (S effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/servers/exa.ts`
+
+**Dependencies:** Group 1 ✅ (Complete)
+
+- [x] 3.1 Write 3 focused tests for Exa integration
+  - Test search returns results with query
+  - Test findSimilar returns related pages
+  - Test getContents retrieves page content
+
+- [x] 3.2 Create Exa server configuration
+  - Define server config in `lib/mcp/servers/exa.ts`
+  - Configure stdio transport with npx command
+  - Set EXA_API_KEY from environment
+  - Define capabilities: search, findSimilar, getContents
+  - Set rate limit: 100 requests/minute
+
+- [x] 3.3 Implement Exa helper functions
+  - `searchWeb(query, options)` - neural/keyword search
+  - `findSimilarPages(url, numResults)` - find related content
+  - `getPageContents(urls)` - fetch full page content
+  - Include error handling for rate limits
+
+- [x] 3.4 Add Exa to MCP configuration
+  - Register Exa in default MCP config
+  - Add to auto-connect list (if API key present)
+
+- [x] 3.5 Run Exa integration tests
+  - Execute tests from 3.1 (mocked or with real API)
+  - Verify all 3 tests pass
+
+**Acceptance Criteria:**
+- Exa MCP server connects successfully ✅
+- Search, findSimilar, getContents work ✅
+- Rate limiting is respected ✅
+- All 3 tests pass ✅ (8 tests total)
+
+---
+
+### Group 4: Firecrawl MCP Integration
+**Estimated Time:** 2-3 days (S effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/servers/firecrawl.ts`
+
+**Dependencies:** Group 1 ✅ (Complete)
+
+- [x] 4.1 Write 3 focused tests for Firecrawl integration
+  - Test scrape returns markdown content
+  - Test crawl returns multiple pages
+  - Test map returns sitemap structure
+
+- [x] 4.2 Create Firecrawl server configuration
+  - Define server config in `lib/mcp/servers/firecrawl.ts`
+  - Configure stdio transport with npx command
+  - Set FIRECRAWL_API_KEY from environment
+  - Define capabilities: scrape, crawl, map
+  - Set rate limit: 50 requests/minute
+
+- [x] 4.3 Implement Firecrawl helper functions
+  - `scrapePage(url, formats)` - extract content (markdown, html, screenshot)
+  - `crawlSite(url, options)` - crawl multiple pages
+  - `getSitemap(url)` - get site structure
+  - Handle pagination for crawl results
+
+- [x] 4.4 Add Firecrawl to MCP configuration
+  - Register Firecrawl in default MCP config
+  - Add to auto-connect list (if API key present)
+
+- [x] 4.5 Run Firecrawl integration tests
+  - Execute tests from 4.1
+  - Verify all 3 tests pass
+
+**Acceptance Criteria:**
+- Firecrawl MCP server connects successfully ✅
+- Scrape, crawl, map capabilities work ✅
+- Screenshots can be captured ✅
+- All 11 tests pass ✅
+
+---
+
+### Group 5: GitHub Deep MCP Integration
+**Estimated Time:** 1 week (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/servers/github.ts`
+
+**Dependencies:** Group 1 ✅ (Complete)
+
+- [x] 5.1 Write 5 focused tests for GitHub integration
+  - Test searchRepositories returns matching repos
+  - Test getRepository returns repo details
+  - Test getFileContents reads file from repo
+  - Test createIssue creates issue successfully
+  - Test searchCode finds code patterns
+
+- [x] 5.2 Create GitHub server configuration
+  - Define server config in `lib/mcp/servers/github.ts`
+  - Configure stdio transport with npx command
+  - Set GITHUB_TOKEN from environment
+  - Define capabilities: searchRepositories, getRepository, getFileContents, createIssue, createPullRequest, listPullRequests, searchCode
+  - Set rate limit: 5000 requests/hour
+
+- [x] 5.3 Implement GitHub helper functions
+  - `searchRepos(query, sort)` - search repositories
+  - `getRepo(owner, repo)` - get repository details
+  - `readFile(owner, repo, path, branch)` - read file contents
+  - `createIssue(owner, repo, title, body, labels)` - create issue
+  - `createPR(owner, repo, title, body, head, base)` - create pull request
+  - `searchCode(query, language)` - search code patterns
+
+- [x] 5.4 Add GitHub to MCP configuration
+  - Register GitHub in default MCP config
+  - Add to auto-connect list (if token present)
+
+- [x] 5.5 Run GitHub integration tests
+  - Execute tests from 5.1
+  - Verify all 5 tests pass
+
+**Acceptance Criteria:**
+- GitHub MCP server connects successfully ✅
+- All repository operations work ✅
+- Issue and PR creation works ✅
+- Code search returns results ✅
+- All 11 tests pass ✅
+
+---
+
+### Group 6: Supabase Full MCP Integration
+**Estimated Time:** 1 week (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/servers/supabase.ts`
+
+**Dependencies:** Group 1
+
+- [x] 6.1 Write 5 focused tests for Supabase integration
+  - Test executeSQL runs queries successfully
+  - Test getTableSchema returns table structure
+  - Test listTables returns all tables
+  - Test createBucket creates storage bucket
+  - Test enableRealtime enables subscriptions
+
+- [x] 6.2 Create Supabase server configuration
+  - Define server config in `lib/mcp/servers/supabase.ts`
+  - Configure stdio transport with npx command
+  - Set SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+  - Define capabilities: executeSQL, getTableSchema, listTables, createTable, configureAuth, createBucket, uploadFile, enableRealtime
+  - Set rate limit: 1000 requests/minute
+
+- [x] 6.3 Implement Supabase helper functions
+  - `runSQL(query)` - execute SQL query
+  - `getSchema(table)` - get table schema
+  - `listAllTables()` - list all tables
+  - `createTable(name, columns)` - create new table
+  - `setupAuth(providers)` - configure auth providers
+  - `createStorageBucket(name, isPublic)` - create bucket
+  - `enableTableRealtime(tables)` - enable realtime
+
+- [x] 6.4 Add Supabase to MCP configuration
+  - Register Supabase in default MCP config
+  - Add to auto-connect list (if credentials present)
+
+- [x] 6.5 Run Supabase integration tests
+  - Execute tests from 6.1
+  - Verify all 5 tests pass
+
+**Acceptance Criteria:**
+- Supabase MCP server connects successfully
+- Database, Auth, Storage, Realtime capabilities work
+- SQL execution is safe (parameterized)
+- All 5 tests pass
+
+---
+
+### Group 7: Context7 & Sequential Thinking MCP Integration
+**Estimated Time:** 3-4 days (S effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/servers/context7.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/mcp/servers/sequential-thinking.ts`
+
+**Dependencies:** Group 1 ✅ (Complete)
+
+- [x] 7.1 Write 4 focused tests for Context7 and Sequential Thinking
+  - Test Context7 resolveLibrary finds library ID
+  - Test Context7 queryDocs returns documentation
+  - Test Sequential Thinking processes thought steps
+  - Test Sequential Thinking supports branching
+
+- [x] 7.2 Create Context7 server configuration
+  - Define server config in `lib/mcp/servers/context7.ts`
+  - Configure stdio transport
+  - Set CONTEXT7_API_KEY from environment
+  - Define capabilities: resolveLibrary, queryDocs, getCodeSnippets
+  - Set rate limit: 100 requests/minute
+
+- [x] 7.3 Create Sequential Thinking server configuration
+  - Define server config in `lib/mcp/servers/sequential-thinking.ts`
+  - Configure stdio transport
+  - Define capabilities: sequentialThinking
+  - Set rate limit: 1000 requests/minute (no external API)
+
+- [x] 7.4 Implement helper functions
+  - Context7: `findLibrary(name)`, `searchDocs(libraryId, query)`, `getSnippets(libraryId, topic)`
+  - Sequential: `processThought(thought, number, total, nextNeeded)`
+
+- [x] 7.5 Add both servers to MCP configuration
+  - Register both in default MCP config
+  - Context7: auto-connect if API key present
+  - Sequential Thinking: always available (no API key needed)
+
+- [x] 7.6 Run integration tests
+  - Execute tests from 7.1
+  - Verify all 4 tests pass
+
+**Acceptance Criteria:**
+- Context7 connects and queries documentation ✅
+- Sequential Thinking processes multi-step reasoning ✅
+- All 4 tests pass ✅ (16 tests total: 7 Context7 + 9 Sequential Thinking)
+
+---
+
+### Group 8: Skills System Architecture
+**Estimated Time:** 2 weeks (L effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/types.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/registry.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/detector.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/executor.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/parser.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/db/schema/skills.ts`
+
+**Dependencies:** Phase 2 Complete, Groups 1-7
+
+- [ ] 8.1 Write 6 focused tests for Skills System
+  - Test skill registration stores in database
+  - Test skill detection matches trigger patterns
+  - Test skill execution creates trace
+  - Test MCP dependency resolution
+  - Test YAML frontmatter parsing
+  - Test skill content body extraction
+
+- [ ] 8.2 Create Skills type definitions
+  - Define `SkillDefinition` interface (name, slug, description, version, etc.)
+  - Define `SkillTrigger` interface (pattern, confidence, examples)
+  - Define `MCPDependency` interface (server, required, capabilities)
+  - Define `ExecutionContext` interface
+  - Define `ExecutionTrace` and `ExecutionStep` interfaces
+
+- [ ] 8.3 Create Skills database schema
+  - Create `skills` table (id, name, slug, description, version, category, tags, scope, content, mcp_dependencies, triggers, is_active, usage_count, success_rate)
+  - Create `skill_executions` table (id, skill_id, user_id, task_id, input_prompt, detected_confidence, execution_trace, status, error_message, duration_ms)
+  - Add indexes for performance
+  - Create Drizzle schema in `db/schema/skills.ts`
+
+  ```powershell
+  cd D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent
+  pnpm db:push
+  ```
+
+- [ ] 8.4 Implement SKILL.md Parser
+  - Parse YAML frontmatter using `gray-matter`
+  - Extract skill metadata (name, version, triggers, etc.)
+  - Parse markdown body for skill instructions
+  - Validate required fields
+  - Return structured `SkillDefinition`
+
+- [ ] 8.5 Implement Skill Registry
+  - Create `SkillRegistry` class
+  - Implement `register(skill)` - add skill to database
+  - Implement `update(slug, skill)` - update existing skill
+  - Implement `get(slug)` - retrieve skill by slug
+  - Implement `list(options)` - list skills with filtering
+  - Implement `deactivate(slug)` - mark skill inactive
+
+- [ ] 8.6 Implement Skill Detector
+  - Create `SkillDetector` class
+  - Implement `matchKeywords(prompt, pattern)` - regex pattern matching
+  - Implement `matchExamples(prompt, examples)` - similarity scoring
+  - Implement `detect(prompt)` - return matching skills with confidence
+  - Set minimum confidence threshold (0.7)
+  - Generate reasoning for detection
+
+- [ ] 8.7 Implement Skill Executor
+  - Create `SkillExecutor` class
+  - Implement execution trace management
+  - Implement `verifyMCPDependencies(context)` - check required servers
+  - Implement `parseSkillContent(skill)` - extract instructions
+  - Implement `executeSkillLogic(context, instructions)` - run via AI agent
+  - Implement `writeOutputs(context)` - generate files
+  - Implement `logExecution(context)` - store execution log
+
+- [ ] 8.8 Run Skills System tests
+  - Execute tests from 8.1
+  - Verify all 6 tests pass
+
+  ```powershell
+  cd D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent
+  pnpm test lib/skills
+  ```
+
+**Acceptance Criteria:**
+- Skills can be registered and retrieved from database
+- Detection accurately identifies skills from prompts (>90%)
+- Execution creates complete trace
+- MCP dependencies are validated
+- All 6 tests pass
+
+---
+
+### Group 9: Skills Management UI
+**Estimated Time:** 1 week (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/skills/skills-dashboard.tsx`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/skills/skill-card.tsx`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/skills/skill-details-panel.tsx`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/app/(app)/skills/page.tsx`
+
+**Dependencies:** Group 8
+
+- [ ] 9.1 Write 4 focused tests for Skills UI
+  - Test SkillsDashboard renders active skills
+  - Test SkillCard displays skill metadata correctly
+  - Test SkillDetailsPanel shows MCP dependencies
+  - Test deactivate button updates skill status
+
+- [ ] 9.2 Create SkillCard component
+  - Display skill name, category, version
+  - Show usage count and success rate
+  - Color-coded status indicator (active/inactive)
+  - Click to select and show details
+
+- [ ] 9.3 Create SkillDetailsPanel component
+  - Display full skill information
+  - Show MCP dependencies with connection status
+  - Display trigger patterns and examples
+  - Include "View SKILL.md" button
+  - Include "Deactivate" / "Activate" toggle
+  - Include "View Logs" link
+
+- [ ] 9.4 Create SkillsDashboard component
+  - Header with "Add Skill" button and search
+  - Grid of SkillCards for active skills
+  - Side panel for SkillDetailsPanel
+  - Filter by category dropdown
+  - Responsive layout (list on mobile)
+
+- [ ] 9.5 Create Skills page route
+  - Create `app/(app)/skills/page.tsx`
+  - Fetch skills list server-side
+  - Handle skill selection state
+  - Include loading and error states
+
+- [ ] 9.6 Create Storybook stories
+  - Stories for each component
+  - Various states (loading, empty, error)
+  - Theme switching support
+
+- [ ] 9.7 Run Skills UI tests
+  - Execute tests from 9.1
+  - Verify all 4 tests pass
+
+**Acceptance Criteria:**
+- Skills dashboard displays all active skills
+- Skill details show complete information
+- Deactivation/activation works
+- All 4 tests pass ✅ (16 tests total: 7 Context7 + 9 Sequential Thinking)
+
+---
+
+### Group 10: Execution Trace UI
+**Estimated Time:** 1 week (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/trace/execution-trace-panel.tsx`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/trace/trace-step.tsx`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/components/trace/trace-step-details.tsx`
+
+**Dependencies:** Groups 8, 9
+
+- [ ] 10.1 Write 4 focused tests for Execution Trace UI
+  - Test ExecutionTracePanel renders all steps
+  - Test TraceStep shows correct status indicator
+  - Test TraceStepDetails expands to show reasoning
+  - Test real-time updates as execution progresses
+
+- [ ] 10.2 Create TraceStep component
+  - Display step number, name, status icon
+  - Show duration when completed
+  - Collapsible details section
+  - Status indicators: pending (gray), running (blue pulse), completed (green check), failed (red x)
+
+- [ ] 10.3 Create TraceStepDetails component
+  - Expandable section for each step
+  - Display reasoning/logs
+  - Show MCP server connections
+  - Display files generated
+  - Format code output with syntax highlighting
+
+- [ ] 10.4 Create ExecutionTracePanel component
+  - Header with task description and timing
+  - Vertical timeline of TraceSteps
+  - Auto-scroll to current running step
+  - "Cancel Execution" button
+  - "View Raw Logs" toggle
+  - Responsive design (full width on mobile)
+
+- [ ] 10.5 Integrate trace panel into chat interface
+  - Show trace panel alongside chat messages
+  - Collapse when execution completes
+  - Allow manual expansion to review
+
+- [ ] 10.6 Create Storybook stories
+  - Story for complete execution flow
+  - Story for failed execution
+  - Story for in-progress execution
+
+- [ ] 10.7 Run Execution Trace tests
+  - Execute tests from 10.1
+  - Verify all 4 tests pass
+
+**Acceptance Criteria:**
+- Trace panel shows all execution steps
+- Real-time updates during execution
+- Details can be expanded for each step
+- All 4 tests pass ✅ (16 tests total: 7 Context7 + 9 Sequential Thinking)
+
+---
+
+### Group 11: Core Skills - database-design
+**Estimated Time:** 4-5 days (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/skills/database-design.skill.md`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/handlers/database-design.ts`
+
+**Dependencies:** Group 8
+
+- [ ] 11.1 Write 4 focused tests for database-design skill
+  - Test skill detects database-related prompts
+  - Test entity extraction from natural language
+  - Test relationship detection (one-to-many, etc.)
+  - Test Drizzle schema file generation
+
+- [ ] 11.2 Create database-design.skill.md
+  - Define YAML frontmatter with triggers
+  - Include pattern: "database|schema|table|entity|model|migration"
+  - Set confidence threshold: 0.7
+  - Add trigger examples
+  - Define MCP dependencies (supabase optional, context7 optional)
+  - Write comprehensive skill instructions
+
+- [ ] 11.3 Implement database-design handler
+  - Parse entity descriptions from prompt
+  - Detect relationships from verbs ("users write posts")
+  - Generate Drizzle schema files
+  - Create proper TypeScript types
+  - Generate migration SQL
+  - Optional: Generate seed data
+
+- [ ] 11.4 Register skill in database
+  - Load skill from file
+  - Parse and register via SkillRegistry
+
+- [ ] 11.5 Test end-to-end skill execution
+  - Test with "Create a blog schema with users and posts"
+  - Verify generated files are correct
+  - Verify execution trace is complete
+
+- [ ] 11.6 Run database-design tests
+  - Execute tests from 11.1
+  - Verify all 4 tests pass
+
+**Acceptance Criteria:**
+- Skill detects database requests accurately
+- Generates valid Drizzle ORM schemas
+- Creates proper relationships
+- All 4 tests pass ✅ (16 tests total: 7 Context7 + 9 Sequential Thinking)
+
+---
+
+### Group 12: Core Skills - api-integration & supabase-setup
+**Estimated Time:** 1 week (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/skills/api-integration.skill.md`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/skills/supabase-setup.skill.md`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/handlers/api-integration.ts`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/handlers/supabase-setup.ts`
+
+**Dependencies:** Groups 6, 8, 11
+
+- [ ] 12.1 Write 4 focused tests for api-integration skill
+  - Test skill detects API-related prompts
+  - Test route generation for CRUD operations
+  - Test Zod validation schema generation
+  - Test error handling utilities generation
+
+- [ ] 12.2 Create api-integration.skill.md
+  - Define YAML frontmatter with API triggers
+  - Pattern: "api|endpoint|route|fetch|request|rest|graphql"
+  - Define MCP dependencies (context7, exa)
+  - Write skill instructions for route generation
+
+- [ ] 12.3 Implement api-integration handler
+  - Generate Next.js App Router API routes
+  - Create Zod validation schemas
+  - Generate TypeScript types
+  - Include error handling utilities
+  - Follow RESTful conventions
+
+- [ ] 12.4 Write 3 focused tests for supabase-setup skill
+  - Test skill detects Supabase-related prompts
+  - Test database provisioning commands
+  - Test auth configuration generation
+
+- [ ] 12.5 Create supabase-setup.skill.md
+  - Define YAML frontmatter with Supabase triggers
+  - Pattern: "supabase|auth|storage|bucket|realtime"
+  - Require supabase MCP dependency
+  - Write skill instructions
+
+- [ ] 12.6 Implement supabase-setup handler
+  - Configure database tables via MCP
+  - Set up auth providers
+  - Create storage buckets
+  - Enable realtime subscriptions
+  - Generate client/server integration code
+
+- [ ] 12.7 Register both skills in database
+
+- [ ] 12.8 Run all skill tests
+  - Execute tests from 12.1 and 12.4
+  - Verify all 7 tests pass
+
+**Acceptance Criteria:**
+- api-integration generates valid API routes
+- supabase-setup configures Supabase via MCP
+- Both skills integrate with MCP servers
+- All 7 tests pass
+
+---
+
+### Group 13: Core Skills - ui-component (Phase 2 Integration)
+**Estimated Time:** 1 week (M effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/skills/ui-component.skill.md`
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/handlers/ui-component.ts`
+
+**Dependencies:** Phase 2 Component Gallery, Groups 8-10
+
+- [ ] 13.1 Write 5 focused tests for ui-component skill
+  - Test skill detects component-related prompts
+  - Test reads existing components from gallery
+  - Test generated components use design tokens
+  - Test components pass accessibility checks
+  - Test new components can be added to gallery
+
+- [ ] 13.2 Create ui-component.skill.md
+  - Define YAML frontmatter with component triggers
+  - Pattern: "component|card|form|button|modal|dialog|table|list|nav"
+  - Define MCP dependencies (context7)
+  - Write skill instructions emphasizing design system compliance
+
+- [ ] 13.3 Implement ui-component handler
+  - Query Component Gallery for similar components
+  - Generate component with shadcn/ui primitives
+  - Apply design tokens from `lib/design-tokens.ts`
+  - Use orange-500 for primary actions
+  - Use blue-500 for links/secondary
+  - Validate accessibility (contrast, keyboard nav)
+
+- [ ] 13.4 Implement Component Gallery integration
+  - Read existing components for reference
+  - Check for duplicate components
+  - Add new components to gallery (optional)
+  - Generate Storybook story for new components
+
+- [ ] 13.5 Register skill in database
+
+- [ ] 13.6 Test bidirectional gallery integration
+  - Create component, verify it references existing patterns
+  - Verify new component can be added to gallery
+  - Verify design token compliance
+
+- [ ] 13.7 Run ui-component tests
+  - Execute tests from 13.1
+  - Verify all 5 tests pass
+
+**Acceptance Criteria:**
+- Skill generates design-compliant components
+- Reads from and contributes to Component Gallery
+- Uses design tokens consistently
+- Passes accessibility checks
+- All 5 tests pass
+
+---
+
+### Group 14: Integration Templates (Stripe, SendGrid, Cloudinary)
+**Estimated Time:** 2 weeks (L effort)
+**Files to Create:**
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/templates/stripe/` (skill, code, mcp, env, docs)
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/templates/sendgrid/` (skill, code, mcp, env, docs)
+- `D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/templates/cloudinary/` (skill, code, mcp, env, docs)
+
+**Dependencies:** Groups 8-13
+
+- [ ] 14.1 Write 4 focused tests for integration templates
+  - Test Stripe template generates checkout flow
+  - Test SendGrid template sends test email
+  - Test Cloudinary template uploads test image
+  - Test templates include all required files
+
+- [ ] 14.2 Create Stripe integration template
+
+  ```powershell
+  mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\templates\stripe\code\components
+  mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\templates\stripe\mcp
+  mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\templates\stripe\env
+  mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\templates\stripe\docs
+  ```
+
+  - Create stripe.skill.md with payment triggers
+  - Create code/client.ts (Stripe SDK setup)
+  - Create code/hooks.ts (useStripeCheckout hook)
+  - Create code/components/checkout-button.tsx
+  - Create code/components/pricing-card.tsx
+  - Create mcp/config.json
+  - Create env/.env.template
+  - Create docs/README.md
+
+- [ ] 14.3 Create SendGrid integration template
+  - Create sendgrid.skill.md with email triggers
+  - Create code/client.ts (SendGrid setup)
+  - Create code/templates/welcome.ts
+  - Create code/templates/notification.ts
+  - Create mcp/config.json
+  - Create env/.env.template
+  - Create docs/README.md
+
+- [ ] 14.4 Create Cloudinary integration template
+  - Create cloudinary.skill.md with media triggers
+  - Create code/client.ts (Cloudinary SDK setup)
+  - Create code/hooks.ts (useImageUpload hook)
+  - Create code/components/image-upload.tsx
+  - Create mcp/config.json
+  - Create env/.env.template
+  - Create docs/README.md
+
+- [ ] 14.5 Register all template skills in database
+
+- [ ] 14.6 Create template loader utility
+  - Function to copy template files to project
+  - Environment variable validation
+  - Prompt user for missing API keys
+
+- [ ] 14.7 Run integration template tests
+  - Execute tests from 14.1
+  - Verify all 4 tests pass
+
+**Acceptance Criteria:**
+- Each template includes skill, code, mcp, env, docs
+- Templates can be loaded into projects
+- User prompted for required API keys
+- All 4 tests pass ✅ (16 tests total: 7 Context7 + 9 Sequential Thinking)
+
+---
+
+### Group 15: Testing, Polish & Documentation
+**Estimated Time:** 1-2 weeks (M effort)
+**Dependencies:** All previous groups
+
+- [ ] 15.1 Review tests from all previous groups
+  - Group 1: MCP Manager tests (4 tests)
+  - Group 2: MCP UI tests (3 tests)
+  - Group 3: Exa tests (3 tests)
+  - Group 4: Firecrawl tests (3 tests)
+  - Group 5: GitHub tests (5 tests)
+  - Group 6: Supabase tests (5 tests)
+  - Group 7: Context7/Sequential tests (4 tests)
+  - Group 8: Skills System tests (6 tests)
+  - Group 9: Skills UI tests (4 tests)
+  - Group 10: Execution Trace tests (4 tests)
+  - Group 11: database-design tests (4 tests)
+  - Group 12: api-integration/supabase-setup tests (7 tests)
+  - Group 13: ui-component tests (5 tests)
+  - Group 14: Integration templates tests (4 tests)
+  - **Total existing: approximately 61 tests**
+
+- [ ] 15.2 Analyze test coverage gaps for Phase 3 features
+  - Focus on critical user workflows
+  - Prioritize end-to-end skill execution
+  - Check MCP connection failure handling
+
+- [ ] 15.3 Write up to 10 additional strategic tests
+  - Test full skill invocation from chat
+  - Test MCP failover/reconnection
+  - Test skill execution with missing MCP server
+  - Test concurrent skill executions
+  - Test execution trace persistence
+
+- [ ] 15.4 Run all Phase 3 tests
+
+  ```powershell
+  cd D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent
+  pnpm test lib/mcp lib/skills components/mcp components/skills components/trace templates
+  ```
+
+- [ ] 15.5 E2E testing
+  - Test skill detection from natural language prompt
+  - Test MCP status panel displays correct states
+  - Test execution trace updates in real-time
+  - Test integration template installation
+
+- [ ] 15.6 Update Storybook documentation
+  - Ensure all new components have stories
+  - Add MCP and Skills sections to Storybook
+  - Document design patterns used
+
+- [ ] 15.7 Build verification
+
+  ```powershell
+  cd D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent
+  pnpm build
+  pnpm build-storybook
+  ```
+
+- [ ] 15.8 Deploy to Vercel and verify
+  - Deploy to preview environment
+  - Test MCP connections in production
+  - Test skill execution in production
+  - Verify execution traces are persisted
+
+- [ ] 15.9 Create Phase 3 baseline documentation
+  - Document all new features
+  - List known limitations
+  - Document external API requirements
+  - Update main README
+
+**Acceptance Criteria:**
+- All 61+ tests pass
+- Build completes without errors
+- Storybook builds and documents all components
+- Production deployment works
+- Baseline documentation created
+
+---
+
+## Execution Order
+
+Recommended implementation sequence:
+
+```
+Week 1:     Group 1 (MCP Manager Foundation)
+Week 2:     Groups 2, 3, 4 (MCP UI, Exa, Firecrawl) - parallel
+Week 3:     Groups 5, 6 (GitHub, Supabase) - parallel
+Week 4:     Group 7 (Context7, Sequential Thinking)
+Week 5-6:   Group 8 (Skills System Architecture)
+Week 6:     Group 9 (Skills Management UI)
+Week 7:     Groups 10, 11 (Execution Trace UI, database-design skill)
+Week 8:     Groups 12, 13 (api-integration, supabase-setup, ui-component)
+Week 9:     Group 14 (Integration Templates)
+Week 10:    Group 15 (Testing, Polish, Documentation)
+```
+
+---
+
+## Completion Criteria
+
+Phase 3 is complete when:
+
+- [ ] Skills System Architecture is operational
+  - [ ] SKILL.md format fully implemented
+  - [ ] Natural language detection works (>90% accuracy)
+  - [ ] Full execution trace visible to users
+- [ ] All 4 core skills are functional
+  - [ ] database-design generates Drizzle schemas
+  - [ ] api-integration creates API routes
+  - [ ] ui-component integrates with Component Gallery
+  - [ ] supabase-setup provisions via MCP
+- [ ] MCP Server Manager operational
+  - [ ] Health monitoring dashboard works
+  - [ ] All 6 MCP servers can connect
+  - [ ] Rate limiting is tracked
+- [ ] All 3 integration templates complete
+  - [ ] Stripe template generates checkout
+  - [ ] SendGrid template sends emails
+  - [ ] Cloudinary template uploads media
+- [ ] All tests pass (61+ tests)
+- [ ] Build and deploy successful
+- [ ] Documentation complete
+
+---
+
+## Notes
+
+### File Summary
+
+**Core Library Files:**
+1. `lib/mcp/manager.ts` - MCP Server Manager
+2. `lib/mcp/connection.ts` - MCP Connection wrapper
+3. `lib/mcp/types.ts` - MCP type definitions
+4. `lib/mcp/config.ts` - MCP configuration loader
+5. `lib/mcp/servers/*.ts` - Individual server configs (exa, firecrawl, github, supabase, context7, sequential-thinking)
+6. `lib/skills/types.ts` - Skills type definitions
+7. `lib/skills/registry.ts` - Skill Registry
+8. `lib/skills/detector.ts` - Skill Detector
+9. `lib/skills/executor.ts` - Skill Executor
+10. `lib/skills/parser.ts` - SKILL.md parser
+11. `lib/skills/handlers/*.ts` - Skill handlers
+
+**Component Files:**
+12. `components/mcp/mcp-status-panel.tsx`
+13. `components/mcp/mcp-server-card.tsx`
+14. `components/mcp/mcp-connection-indicator.tsx`
+15. `components/skills/skills-dashboard.tsx`
+16. `components/skills/skill-card.tsx`
+17. `components/skills/skill-details-panel.tsx`
+18. `components/trace/execution-trace-panel.tsx`
+19. `components/trace/trace-step.tsx`
+20. `components/trace/trace-step-details.tsx`
+
+**Skill Files:**
+21. `skills/database-design.skill.md`
+22. `skills/api-integration.skill.md`
+23. `skills/ui-component.skill.md`
+24. `skills/supabase-setup.skill.md`
+
+**Template Directories:**
+25. `templates/stripe/`
+26. `templates/sendgrid/`
+27. `templates/cloudinary/`
+
+**Database Schema:**
+28. `db/schema/skills.ts`
+
+### PowerShell Commands Reference
+
+```powershell
+# Create directory structure
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\lib\mcp
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\lib\mcp\servers
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\lib\skills
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\lib\skills\handlers
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\components\mcp
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\components\skills
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\components\trace
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\skills
+mkdir D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent\templates
+
+# Install dependencies
+cd D:\009_Projects_AI\Personal_Projects\Turbocat\turbocat-agent
+pnpm add gray-matter  # For YAML frontmatter parsing
+pnpm add @modelcontextprotocol/sdk  # MCP SDK
+
+# Run tests
+pnpm test lib/mcp
+pnpm test lib/skills
+pnpm test components/mcp
+pnpm test components/skills
+
+# Database migrations
+pnpm db:push
+
+# Build and deploy
+pnpm build
+pnpm build-storybook
+```
+
+### External Service API Keys Required
+
+| Service | Environment Variable | Where to Get |
+|---------|---------------------|--------------|
+| Exa | `EXA_API_KEY` | https://exa.ai/dashboard |
+| Firecrawl | `FIRECRAWL_API_KEY` | https://firecrawl.dev |
+| GitHub | `GITHUB_TOKEN` | https://github.com/settings/tokens |
+| Supabase | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase project settings |
+| Context7 | `CONTEXT7_API_KEY` | https://context7.dev |
+| Stripe | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | https://dashboard.stripe.com/apikeys |
+| SendGrid | `SENDGRID_API_KEY` | https://app.sendgrid.com/settings/api_keys |
+| Cloudinary | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | https://cloudinary.com/console |
+
+### Monthly Cost Estimates
+
+| Service | Free Tier | Est. Usage | Monthly Cost |
+|---------|-----------|------------|--------------|
+| Exa | 1,000 searches | ~5,000 | $50 |
+| Firecrawl | 500 scrapes | ~2,000 | $40 |
+| GitHub API | 5,000 req/hr | Within limit | Free |
+| Supabase | Free tier | Within limit | Free |
+| Context7 | Free tier | Within limit | Free |
+| Stripe | Free (pay per transaction) | Per use | Variable |
+| SendGrid | 100 emails/day | ~1,000/mo | $20 |
+| Cloudinary | 25 credits | ~50 | Free |
+
+---
+
+*Tasks breakdown created: 2026-01-03*
+*Based on spec: `D:/009_Projects_AI/Personal_Projects/Turbocat/agent-os/specs/2026-01-03-skills-mcp-integration/spec.md`*

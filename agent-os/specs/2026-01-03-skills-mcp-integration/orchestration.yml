@@ -1,0 +1,31 @@
+task_groups:
+  - name: MCP Connector Enhancement (Foundation)
+    claude_code_subagent: backend-developer
+  - name: MCP Status UI Components
+    claude_code_subagent: frontend-developer
+  - name: Exa Search MCP Integration
+    claude_code_subagent: backend-developer
+  - name: Firecrawl MCP Integration
+    claude_code_subagent: backend-developer
+  - name: GitHub Deep MCP Integration
+    claude_code_subagent: backend-developer
+  - name: Supabase Full MCP Integration
+    claude_code_subagent: backend-developer
+  - name: Context7 & Sequential Thinking MCP Integration
+    claude_code_subagent: backend-developer
+  - name: Skills System Architecture
+    claude_code_subagent: fullstack-developer
+  - name: Skills Management UI
+    claude_code_subagent: frontend-developer
+  - name: Execution Trace UI
+    claude_code_subagent: frontend-developer
+  - name: Core Skills - database-design
+    claude_code_subagent: backend-developer
+  - name: Core Skills - api-integration & supabase-setup
+    claude_code_subagent: backend-developer
+  - name: Core Skills - ui-component (Phase 2 Integration)
+    claude_code_subagent: frontend-developer
+  - name: Integration Templates (Stripe, SendGrid, Cloudinary)
+    claude_code_subagent: fullstack-developer
+  - name: Testing, Polish & Documentation
+    claude_code_subagent: test-automator
