@@ -501,7 +501,7 @@ fi
     }
 
     // Configure Git user
-    const gitName = config.gitAuthorName || 'Coding Agent'
+    const gitName = config.gitAuthorName || 'Turbocat'
     const gitEmail = config.gitAuthorEmail || 'agent@example.com'
     await runInProject(sandbox, 'git', ['config', 'user.name', gitName])
     await runInProject(sandbox, 'git', ['config', 'user.email', gitEmail])

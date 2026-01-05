@@ -58,7 +58,7 @@ export async function executeOpenCodeInSandbox(
 
     // Check if we have required environment variables for OpenCode
     if (!process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY) {
-      const errorMsg = 'OpenAI API key or Anthropic API key is required for OpenCode agent'
+      const errorMsg = 'OpenCode agent is temporarily unavailable. Please try a different agent or contact support.'
       await logger.error(errorMsg)
       return {
         success: false,

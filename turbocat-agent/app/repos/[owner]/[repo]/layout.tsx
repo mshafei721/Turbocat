@@ -1,6 +1,5 @@
 import { RepoLayout } from '@/components/repo-layout'
 import { getServerSession } from '@/lib/session/get-server-session'
-import { getGitHubStars } from '@/lib/github-stars'
 import { Metadata } from 'next'
 
 interface LayoutPageProps {
@@ -14,7 +13,6 @@ interface LayoutPageProps {
 export default async function Layout({ params, children }: LayoutPageProps) {
   const { owner, repo } = await params
   const session = await getServerSession()
-  const stars = await getGitHubStars()
 
   return (
     <RepoLayout
@@ -22,7 +20,6 @@ export default async function Layout({ params, children }: LayoutPageProps) {
       repo={repo}
       user={session?.user ?? null}
       authProvider={session?.authProvider ?? null}
-      initialStars={stars}
     >
       {children}
     </RepoLayout>
@@ -33,7 +30,7 @@ export async function generateMetadata({ params }: LayoutPageProps): Promise<Met
   const { owner, repo } = await params
 
   return {
-    title: `${owner}/${repo} - Coding Agent Platform`,
+    title: `${owner}/${repo} - Turbocat`,
     description: 'View repository commits, issues, and pull requests',
   }
 }

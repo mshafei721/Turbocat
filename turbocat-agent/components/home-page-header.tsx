@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, RefreshCw, Unlink, Settings, Plus, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
-import { VERCEL_DEPLOY_URL } from '@/lib/constants'
 import { User } from '@/components/auth/user'
 import type { Session } from '@/lib/session/types'
 import { toast } from 'sonner'
@@ -22,10 +21,10 @@ import { useSetAtom, useAtomValue } from 'jotai'
 import { sessionAtom } from '@/lib/atoms/session'
 import { githubConnectionAtom, githubConnectionInitializedAtom } from '@/lib/atoms/github-connection'
 import { GitHubIcon } from '@/components/icons/github-icon'
-import { GitHubStarsButton } from '@/components/github-stars-button'
 import { OpenRepoUrlDialog } from '@/components/open-repo-url-dialog'
 import { MultiRepoDialog } from '@/components/multi-repo-dialog'
 import { useTasks as useTasksContext } from '@/components/app-layout'
+import { TurbocatLogo } from '@/components/logos'
 
 interface HomePageHeaderProps {
   selectedOwner: string
@@ -33,7 +32,6 @@ interface HomePageHeaderProps {
   onOwnerChange: (owner: string) => void
   onRepoChange: (repo: string) => void
   user?: Session['user'] | null
-  initialStars?: number
 }
 
 export function HomePageHeader({
@@ -42,7 +40,6 @@ export function HomePageHeader({
   onOwnerChange,
   onRepoChange,
   user,
-  initialStars = 1200,
 }: HomePageHeaderProps) {
   const { toggleSidebar } = useTasks()
   const routerNav = useRouter()
@@ -193,28 +190,6 @@ export function HomePageHeader({
 
   const actions = (
     <div className="flex items-center gap-2 flex-shrink-0">
-      {/* GitHub Stars Button - Show on mobile only when logged out (unless owner/repo selected), always show on desktop */}
-      <div className={user ? 'hidden md:block' : selectedOwner || selectedRepo ? 'hidden' : 'block md:block'}>
-        <GitHubStarsButton initialStars={initialStars} />
-      </div>
-
-      {/* Deploy to Vercel Button - Show on mobile only when logged out (unless owner/repo selected), always show on desktop */}
-      <div className={user ? 'hidden md:block' : selectedOwner || selectedRepo ? 'hidden' : 'block md:block'}>
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="h-8 px-3 bg-black text-white border-black hover:bg-black/90 dark:bg-white dark:text-black dark:border-white dark:hover:bg-white/90"
-        >
-          <a href={VERCEL_DEPLOY_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5">
-            <svg viewBox="0 0 76 65" className="h-3 w-3" fill="currentColor">
-              <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-            </svg>
-            <span>Deploy Your Own</span>
-          </a>
-        </Button>
-      </div>
-
       {/* User Authentication */}
       <User user={user} />
     </div>
@@ -243,6 +218,9 @@ export function HomePageHeader({
   // Always render leftActions container to prevent layout shift
   const leftActions = (
     <div className="flex items-center gap-1 sm:gap-2 h-8 min-w-0 flex-1">
+      <div className="flex items-center gap-2">
+        <TurbocatLogo className="h-8 w-8" showText />
+      </div>
       {!githubConnectionInitialized ? null : githubConnection.connected || isGitHubAuthUser ? ( // Show nothing while loading to prevent flash of "Connect GitHub" button
         <>
           <RepoSelector

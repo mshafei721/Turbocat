@@ -13,8 +13,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { PageHeader } from '@/components/page-header'
 import { useTasks } from '@/components/app-layout'
 import { User } from '@/components/auth/user'
-import { GitHubStarsButton } from '@/components/github-stars-button'
-import { VERCEL_DEPLOY_URL } from '@/lib/constants'
 import { useAtomValue } from 'jotai'
 import { sessionAtom } from '@/lib/atoms/session'
 import { File } from 'lucide-react'
@@ -182,27 +180,6 @@ export default function NewRepoPage() {
           onToggleMobileMenu={toggleSidebar}
           actions={
             <div className="flex items-center gap-2 h-8">
-              <GitHubStarsButton initialStars={1200} />
-              {/* Deploy to Vercel Button */}
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="h-8 sm:px-3 px-0 sm:w-auto w-8 bg-black text-white border-black hover:bg-black/90 dark:bg-white dark:text-black dark:border-white dark:hover:bg-white/90"
-              >
-                <a
-                  href={VERCEL_DEPLOY_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5"
-                >
-                  <svg viewBox="0 0 76 65" className="h-3 w-3" fill="currentColor">
-                    <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-                  </svg>
-                  <span className="hidden sm:inline">Deploy Your Own</span>
-                </a>
-              </Button>
-
               {/* User Authentication */}
               <User user={session.user} authProvider={session.authProvider} />
             </div>

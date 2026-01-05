@@ -42,6 +42,16 @@ export async function executeCopilotInSandbox(
   let accumulatedContent = ''
 
   try {
+    // Check for API key before attempting anything
+    if (!process.env.GH_TOKEN && !process.env.GITHUB_TOKEN) {
+      return {
+        success: false,
+        error: 'Copilot agent is temporarily unavailable. Please try a different agent or contact support.',
+        cliName: 'copilot',
+        changesDetected: false,
+      }
+    }
+
     // Check if GitHub Copilot CLI is already installed (for resumed sandboxes)
     const existingCliCheck = await runCommandInSandbox(sandbox, 'sh', ['-c', 'which copilot 2>/dev/null'])
 
@@ -84,16 +94,6 @@ export async function executeCopilotInSandbox(
       return {
         success: false,
         error: 'GitHub Copilot CLI not found after installation',
-        cliName: 'copilot',
-        changesDetected: false,
-      }
-    }
-
-    // Check if GH_TOKEN or GITHUB_TOKEN is available
-    if (!process.env.GH_TOKEN && !process.env.GITHUB_TOKEN) {
-      return {
-        success: false,
-        error: 'GH_TOKEN or GITHUB_TOKEN environment variable is required but not found',
         cliName: 'copilot',
         changesDetected: false,
       }

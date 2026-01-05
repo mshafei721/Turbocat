@@ -84,7 +84,6 @@ import LinearIcon from '@/components/icons/linear-icon'
 import NotionIcon from '@/components/icons/notion-icon'
 import PlaywrightIcon from '@/components/icons/playwright-icon'
 import SupabaseIcon from '@/components/icons/supabase-icon'
-import VercelIcon from '@/components/icons/vercel-icon'
 import { PRStatusIcon } from '@/components/pr-status-icon'
 
 interface TaskDetailsProps {
@@ -1616,7 +1615,7 @@ export function TaskDetails({ task, maxSandboxDuration = 300 }: TaskDetailsProps
           {/* Preview Deployment */}
           {!loadingDeployment && deploymentUrl && (
             <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
-              <VercelIcon className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 text-muted-foreground" />
+              <ExternalLink className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0 text-muted-foreground" />
               <a
                 href={deploymentUrl}
                 target="_blank"

@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers'
 import { HomePageContent } from '@/components/home-page-content'
 import { getServerSession } from '@/lib/session/get-server-session'
-import { getGitHubStars } from '@/lib/github-stars'
 import { getMaxSandboxDuration } from '@/lib/db/settings'
 
 export default async function Home() {
@@ -17,8 +16,6 @@ export default async function Home() {
   const maxSandboxDuration = await getMaxSandboxDuration(session?.user?.id)
   const maxDuration = parseInt(cookieStore.get('max-duration')?.value || maxSandboxDuration.toString(), 10)
 
-  const stars = await getGitHubStars()
-
   return (
     <HomePageContent
       initialSelectedOwner={selectedOwner}
@@ -28,7 +25,6 @@ export default async function Home() {
       initialKeepAlive={keepAlive}
       maxSandboxDuration={maxSandboxDuration}
       user={session?.user ?? null}
-      initialStars={stars}
     />
   )
 }

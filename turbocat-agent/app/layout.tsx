@@ -27,21 +27,21 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'TurboCat',
-  description: 'AI-powered coding agent for supercharged development',
+  title: 'Turbocat',
+  description: 'Multi-agent AI coding platform - compare Claude, Codex, Copilot, Cursor, Gemini, and OpenCode',
   appleWebApp: {
-    title: 'TurboCat',
+    title: 'Turbocat',
   },
   openGraph: {
-    title: 'TurboCat',
-    description: 'AI-powered coding agent for supercharged development',
+    title: 'Turbocat',
+    description: 'Multi-agent AI coding platform - compare Claude, Codex, Copilot, Cursor, Gemini, and OpenCode',
     images: ['/og-image.png'],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TurboCat',
-    description: 'AI-powered coding agent for supercharged development',
+    title: 'Turbocat',
+    description: 'Multi-agent AI coding platform - compare Claude, Codex, Copilot, Cursor, Gemini, and OpenCode',
     images: ['/og-image.png'],
   },
 }

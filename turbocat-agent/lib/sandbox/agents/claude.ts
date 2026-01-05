@@ -194,6 +194,16 @@ export async function executeClaudeInSandbox(
 ): Promise<AgentExecutionResult> {
   let extractedSessionId: string | undefined
   try {
+    // Check if ANTHROPIC_API_KEY is available before attempting anything
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return {
+        success: false,
+        error: 'Claude agent is temporarily unavailable. Please try a different agent or contact support.',
+        cliName: 'claude',
+        changesDetected: false,
+      }
+    }
+
     // Executing Claude CLI with instruction
 
     // Check if Claude CLI is available and get version info
@@ -230,16 +240,6 @@ export async function executeClaudeInSandbox(
           cliName: 'claude',
           changesDetected: false,
         }
-      }
-    }
-
-    // Check if ANTHROPIC_API_KEY is available
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return {
-        success: false,
-        error: 'ANTHROPIC_API_KEY environment variable is required but not found',
-        cliName: 'claude',
-        changesDetected: false,
       }
     }
 
