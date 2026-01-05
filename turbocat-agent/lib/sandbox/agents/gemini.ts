@@ -51,6 +51,16 @@ export async function executeGeminiInSandbox(
   mcpServers?: Connector[],
 ): Promise<AgentExecutionResult> {
   try {
+    // Check for API key before attempting anything
+    if (!process.env.GEMINI_API_KEY && !process.env.GOOGLE_API_KEY && !process.env.GOOGLE_CLOUD_PROJECT) {
+      return {
+        success: false,
+        error: 'Gemini agent is temporarily unavailable. Please try a different agent or contact support.',
+        cliName: 'gemini',
+        changesDetected: false,
+      }
+    }
+
     // Executing Gemini CLI with instruction
 
     // Check if Gemini CLI is available
@@ -193,10 +203,14 @@ EOF`
       authEnv.GOOGLE_CLOUD_PROJECT = process.env.GOOGLE_CLOUD_PROJECT
       await logger.info('Using Google Cloud Project authentication (requires OAuth login)')
     }
-    // Option 4: Default OAuth (will require interactive login)
+    // Option 4: No authentication available - return error
     else {
-      authMethod = 'oauth'
-      await logger.info('No API keys found, will attempt OAuth authentication')
+      return {
+        success: false,
+        error: 'Gemini agent is temporarily unavailable. Please try a different agent or contact support.',
+        cliName: 'gemini',
+        changesDetected: false,
+      }
     }
 
     // Prepare the command arguments using the correct Gemini CLI syntax

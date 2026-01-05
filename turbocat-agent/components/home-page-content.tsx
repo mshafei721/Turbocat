@@ -26,7 +26,6 @@ interface HomePageContentProps {
   initialKeepAlive?: boolean
   maxSandboxDuration?: number
   user?: Session['user'] | null
-  initialStars?: number
 }
 
 export function HomePageContent({
@@ -37,7 +36,6 @@ export function HomePageContent({
   initialKeepAlive = false,
   maxSandboxDuration = 300,
   user = null,
-  initialStars = 1200,
 }: HomePageContentProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedOwner, setSelectedOwnerState] = useState(initialSelectedOwner)
@@ -353,7 +351,6 @@ export function HomePageContent({
           onOwnerChange={handleOwnerChange}
           onRepoChange={handleRepoChange}
           user={user}
-          initialStars={initialStars}
         />
       </div>
 
@@ -370,8 +367,8 @@ export function HomePageContent({
         />
       </div>
 
-      {/* Mobile Footer with Stars and Deploy Button - Show when logged in OR when owner/repo are selected */}
-      {(user || selectedOwner || selectedRepo) && <HomePageMobileFooter initialStars={initialStars} />}
+      {/* Mobile Footer - Show when logged in OR when owner/repo are selected */}
+      {(user || selectedOwner || selectedRepo) && <HomePageMobileFooter />}
 
       {/* Sign In Dialog */}
       <Dialog open={showSignInDialog} onOpenChange={setShowSignInDialog}>

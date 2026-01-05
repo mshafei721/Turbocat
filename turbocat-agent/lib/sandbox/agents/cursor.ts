@@ -57,6 +57,16 @@ export async function executeCursorInSandbox(
   taskId?: string,
 ): Promise<AgentExecutionResult> {
   try {
+    // Check for API key before attempting anything
+    if (!process.env.CURSOR_API_KEY) {
+      return {
+        success: false,
+        error: 'Cursor agent is temporarily unavailable. Please try a different agent or contact support.',
+        cliName: 'cursor',
+        changesDetected: false,
+      }
+    }
+
     // Executing Cursor CLI with instruction
 
     // Check if Cursor CLI is already installed (for resumed sandboxes)
@@ -161,16 +171,6 @@ export async function executeCursorInSandbox(
       return {
         success: false,
         error: 'Cursor CLI (cursor-agent) not found after installation. Check logs for search results.',
-        cliName: 'cursor',
-        changesDetected: false,
-      }
-    }
-
-    // Check if CURSOR_API_KEY is available
-    if (!process.env.CURSOR_API_KEY) {
-      return {
-        success: false,
-        error: 'CURSOR_API_KEY not found. Please set the API key to use Cursor agent.',
         cliName: 'cursor',
         changesDetected: false,
       }

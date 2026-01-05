@@ -35,6 +35,16 @@ export async function executeCodexInSandbox(
   sessionId?: string,
 ): Promise<AgentExecutionResult> {
   try {
+    // Check API key before attempting anything
+    if (!process.env.AI_GATEWAY_API_KEY) {
+      return {
+        success: false,
+        error: 'Codex agent is temporarily unavailable. Please try a different agent or contact support.',
+        cliName: 'codex',
+        changesDetected: false,
+      }
+    }
+
     // Executing Codex CLI with instruction
 
     // Check if Codex CLI is already installed (for resumed sandboxes)
@@ -70,16 +80,6 @@ export async function executeCodexInSandbox(
       return {
         success: false,
         error: 'Codex CLI not found after installation. Please ensure it is properly installed.',
-        cliName: 'codex',
-        changesDetected: false,
-      }
-    }
-
-    // Set up authentication - we'll use API key method since we're in a sandbox
-    if (!process.env.AI_GATEWAY_API_KEY) {
-      return {
-        success: false,
-        error: 'AI Gateway API key not found. Please set AI_GATEWAY_API_KEY environment variable.',
         cliName: 'codex',
         changesDetected: false,
       }
