@@ -439,6 +439,75 @@ async function processTask(
       await logger.info('AI branch name not ready, will use fallback during sandbox creation')
     }
 
+    // Phase 4: For mobile platform, use Railway container instead of Vercel sandbox
+    if (platform === 'mobile') {
+      await logger.updateProgress(15, 'Setting up mobile development environment...')
+      await logger.info('Mobile platform detected - using Railway for Expo Metro bundler')
+
+      // Check if Railway API token is configured
+      if (!process.env.RAILWAY_API_TOKEN) {
+        throw new Error('RAILWAY_API_TOKEN is required for mobile platform. Please configure Railway credentials.')
+      }
+
+      try {
+        await logger.updateProgress(25, 'Provisioning Railway container for Expo...')
+
+        const railwayClient = getRailwayClientFromEnv()
+        const lifecycleService = getLifecycleService(railwayClient)
+
+        // Get user ID
+        const session = await getServerSession()
+        const userId = session?.user?.id || 'unknown'
+
+        const containerResult = await lifecycleService.provisionContainer(taskId, userId)
+        const railwayMetroUrl = containerResult.metroUrl
+
+        await logger.info(`Railway container provisioned: ${railwayMetroUrl}`)
+        await logger.updateProgress(50, 'Railway container ready')
+
+        // Update task with Railway Metro URL
+        await db.update(tasks).set({
+          sandboxUrl: railwayMetroUrl,
+          status: 'completed',
+          progress: 100,
+          updatedAt: new Date(),
+        }).where(eq(tasks.id, taskId))
+
+        await logger.success('Mobile development environment ready')
+        await logger.info(`Expo Metro bundler available at: ${railwayMetroUrl}`)
+        await logger.info('Scan the QR code in Expo Go app to preview your mobile app')
+
+        // Save a completion message
+        try {
+          await db.insert(taskMessages).values({
+            id: generateId(12),
+            taskId,
+            role: 'agent',
+            content: `Mobile development environment is ready!
+
+**Metro Bundler URL:** ${railwayMetroUrl}
+
+To preview your app:
+1. Install Expo Go on your mobile device
+2. Scan the QR code or enter the URL manually
+3. Your React Native app will load in Expo Go
+
+Note: For AI-assisted code generation with mobile apps, use the web platform with a React Native/Expo repository.`,
+          })
+        } catch (error) {
+          console.error('Failed to save completion message:', error)
+        }
+
+        return // Mobile flow complete
+      } catch (railwayError) {
+        console.error('Failed to provision Railway container:', railwayError)
+        const errorMessage = railwayError instanceof Error ? railwayError.message : 'Unknown error'
+        await logger.error(`Railway container provisioning failed: ${errorMessage}`)
+        throw new Error(`Failed to set up mobile environment: ${errorMessage}`)
+      }
+    }
+
+    // Web platform flow - use Vercel sandbox
     await logger.updateProgress(15, 'Creating sandbox environment')
     console.log('Creating sandbox')
 
@@ -517,41 +586,6 @@ async function processTask(
     }
 
     await db.update(tasks).set(updateData).where(eq(tasks.id, taskId))
-
-    // Phase 4: For mobile platform, also provision a Railway container for Expo Metro bundler
-    let railwayMetroUrl: string | undefined
-    if (platform === 'mobile') {
-      try {
-        await logger.info('Mobile platform detected - provisioning Railway container for Expo...')
-
-        // Check if Railway API token is configured
-        if (!process.env.RAILWAY_API_TOKEN) {
-          await logger.info('RAILWAY_API_TOKEN not configured - mobile preview will use sandbox URL')
-        } else {
-          const railwayClient = getRailwayClientFromEnv()
-          const lifecycleService = getLifecycleService(railwayClient)
-
-          // Get user ID from session (we need to pass it from outer scope)
-          const session = await getServerSession()
-          const userId = session?.user?.id || 'unknown'
-
-          const containerResult = await lifecycleService.provisionContainer(taskId, userId)
-          railwayMetroUrl = containerResult.metroUrl
-
-          await logger.info(`Railway container provisioned: ${railwayMetroUrl}`)
-
-          // Update task with Railway Metro URL for QR code generation
-          await db.update(tasks).set({
-            sandboxUrl: railwayMetroUrl, // Use Metro URL for mobile preview
-            updatedAt: new Date(),
-          }).where(eq(tasks.id, taskId))
-        }
-      } catch (railwayError) {
-        // Log error but don't fail the task - mobile preview is optional
-        console.error('Failed to provision Railway container:', railwayError)
-        await logger.info('Railway container provisioning failed - mobile preview unavailable')
-      }
-    }
 
     // Check if task was stopped before agent execution
     if (await isTaskStopped(taskId)) {
