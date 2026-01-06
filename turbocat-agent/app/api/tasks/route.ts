@@ -22,6 +22,8 @@ import { getGitHubUser } from '@/lib/github/client'
 import { getUserApiKeys } from '@/lib/api-keys/user-keys'
 import { checkRateLimit } from '@/lib/utils/rate-limit'
 import { getMaxSandboxDuration } from '@/lib/db/settings'
+import { getRailwayClientFromEnv } from '@/lib/railway/client'
+import { getLifecycleService } from '@/lib/railway/lifecycle'
 
 export async function GET() {
   try {
@@ -515,6 +517,41 @@ async function processTask(
     }
 
     await db.update(tasks).set(updateData).where(eq(tasks.id, taskId))
+
+    // Phase 4: For mobile platform, also provision a Railway container for Expo Metro bundler
+    let railwayMetroUrl: string | undefined
+    if (platform === 'mobile') {
+      try {
+        await logger.info('Mobile platform detected - provisioning Railway container for Expo...')
+
+        // Check if Railway API token is configured
+        if (!process.env.RAILWAY_API_TOKEN) {
+          await logger.info('RAILWAY_API_TOKEN not configured - mobile preview will use sandbox URL')
+        } else {
+          const railwayClient = getRailwayClientFromEnv()
+          const lifecycleService = getLifecycleService(railwayClient)
+
+          // Get user ID from session (we need to pass it from outer scope)
+          const session = await getServerSession()
+          const userId = session?.user?.id || 'unknown'
+
+          const containerResult = await lifecycleService.provisionContainer(taskId, userId)
+          railwayMetroUrl = containerResult.metroUrl
+
+          await logger.info(`Railway container provisioned: ${railwayMetroUrl}`)
+
+          // Update task with Railway Metro URL for QR code generation
+          await db.update(tasks).set({
+            sandboxUrl: railwayMetroUrl, // Use Metro URL for mobile preview
+            updatedAt: new Date(),
+          }).where(eq(tasks.id, taskId))
+        }
+      } catch (railwayError) {
+        // Log error but don't fail the task - mobile preview is optional
+        console.error('Failed to provision Railway container:', railwayError)
+        await logger.info('Railway container provisioning failed - mobile preview unavailable')
+      }
+    }
 
     // Check if task was stopped before agent execution
     if (await isTaskStopped(taskId)) {
