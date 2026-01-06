@@ -111,7 +111,7 @@ export async function POST(
     // Fall back to sandbox URL for Expo projects
     if (!metroUrl && task.sandboxUrl) {
       // Check if it's an Expo project (mobile platform)
-      if (task.platform === 'mobile' || task.platform === 'ios' || task.platform === 'android') {
+      if (task.platform === 'mobile') {
         metroUrl = task.sandboxUrl
       }
     }
