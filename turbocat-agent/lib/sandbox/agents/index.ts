@@ -8,6 +8,7 @@ import { executeGeminiInSandbox } from './gemini'
 import { executeOpenCodeInSandbox } from './opencode'
 import { TaskLogger } from '@/lib/utils/task-logger'
 import { Connector } from '@/lib/db/schema'
+import { injectPlatformContext, type Platform } from '../platform-prompt'
 
 export type AgentType = 'claude' | 'codex' | 'copilot' | 'cursor' | 'gemini' | 'opencode'
 
@@ -34,6 +35,7 @@ export async function executeAgentInSandbox(
   sessionId?: string,
   taskId?: string,
   agentMessageId?: string,
+  platform: Platform = 'web', // Phase 4: Platform context for web vs mobile
 ): Promise<AgentExecutionResult> {
   // Check for cancellation before starting agent execution
   if (onCancellationCheck && (await onCancellationCheck())) {
@@ -45,6 +47,11 @@ export async function executeAgentInSandbox(
       changesDetected: false,
     }
   }
+
+  // Phase 4: Inject platform context into instruction
+  // This guides the AI to generate web (Next.js) or mobile (React Native Expo) code
+  const platformAwareInstruction = injectPlatformContext(instruction, platform)
+  await logger.info(`Platform: ${platform.toUpperCase()} - Generating ${platform === 'mobile' ? 'React Native/Expo' : 'Next.js'} code`)
 
   // For Copilot agent, get the GitHub token from the user's GitHub account
   let githubToken: string | undefined
@@ -79,7 +86,7 @@ export async function executeAgentInSandbox(
       case 'claude':
         return await executeClaudeInSandbox(
           sandbox,
-          instruction,
+          platformAwareInstruction,
           logger,
           selectedModel,
           mcpServers,
@@ -92,7 +99,7 @@ export async function executeAgentInSandbox(
       case 'codex':
         return await executeCodexInSandbox(
           sandbox,
-          instruction,
+          platformAwareInstruction,
           logger,
           selectedModel,
           mcpServers,
@@ -103,7 +110,7 @@ export async function executeAgentInSandbox(
       case 'copilot':
         return await executeCopilotInSandbox(
           sandbox,
-          instruction,
+          platformAwareInstruction,
           logger,
           selectedModel,
           mcpServers,
@@ -115,7 +122,7 @@ export async function executeAgentInSandbox(
       case 'cursor':
         return await executeCursorInSandbox(
           sandbox,
-          instruction,
+          platformAwareInstruction,
           logger,
           selectedModel,
           mcpServers,
@@ -125,12 +132,12 @@ export async function executeAgentInSandbox(
         )
 
       case 'gemini':
-        return await executeGeminiInSandbox(sandbox, instruction, logger, selectedModel, mcpServers)
+        return await executeGeminiInSandbox(sandbox, platformAwareInstruction, logger, selectedModel, mcpServers)
 
       case 'opencode':
         return await executeOpenCodeInSandbox(
           sandbox,
-          instruction,
+          platformAwareInstruction,
           logger,
           selectedModel,
           mcpServers,

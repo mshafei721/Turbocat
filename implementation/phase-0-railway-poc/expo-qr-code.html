@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expo POC - QR Code</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin: 0 0 30px 0;
+            font-size: 14px;
+        }
+        #qrcode {
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .url-display {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+        }
+        .instructions {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #333;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .status {
+            color: #28a745;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Turbocat Phase 4 POC</h1>
+        <p class="subtitle">Railway.app + Expo Metro Bundler</p>
+        <div class="status">✅ Live and Running</div>
+
+        <div id="qrcode">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=exp://turbocat-phase4-poc-production.up.railway.app"
+                 alt="QR Code for Expo App"
+                 style="border: 2px solid #667eea; border-radius: 8px;">
+        </div>
+
+        <div class="url-display">
+            <strong>Expo URL:</strong><br>
+            exp://turbocat-phase4-poc-production.up.railway.app
+        </div>
+
+        <div class="badge">Scan with Expo Go App</div>
+
+        <div class="instructions">
+            <h3>📱 How to Connect:</h3>
+            <ol>
+                <li><strong>iOS:</strong> Open <strong>Expo Go</strong> → Camera icon in top right → Scan QR code above</li>
+                <li><strong>Android:</strong> Open <strong>Expo Go</strong> → "Scan QR Code" button → Scan above</li>
+            </ol>
+
+            <h3>🔧 Alternative Method (Manual URL Entry):</h3>
+            <ol>
+                <li>Open <strong>Expo Go</strong> app on your phone</li>
+                <li>Look for menu options (three dots ⋮ or hamburger menu ☰)</li>
+                <li>Find "Enter URL manually" or "Connection" option</li>
+                <li>Paste: <strong>exp://turbocat-phase4-poc-production.up.railway.app</strong></li>
+                <li>Tap "Connect" or "Go"</li>
+            </ol>
+
+            <h3>💡 Troubleshooting:</h3>
+            <ul style="list-style: none; padding-left: 0;">
+                <li>✓ Make sure your phone has internet access</li>
+                <li>✓ Try both WiFi and cellular data</li>
+                <li>✓ Update Expo Go to latest version if issues persist</li>
+                <li>✓ If QR doesn't work, use the manual URL entry method above</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

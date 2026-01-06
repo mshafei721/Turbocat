@@ -20,6 +20,7 @@ import {
   MessageSquare,
   FileText,
   Monitor,
+  Smartphone,
   Eye,
   EyeOff,
   RefreshCw,
@@ -78,6 +79,7 @@ import Link from 'next/link'
 import BrowserbaseIcon from '@/components/icons/browserbase-icon'
 import Context7Icon from '@/components/icons/context7-icon'
 import ConvexIcon from '@/components/icons/convex-icon'
+import { MobilePreview } from '@/components/mobile-preview'
 import FigmaIcon from '@/components/icons/figma-icon'
 import HuggingFaceIcon from '@/components/icons/huggingface-icon'
 import LinearIcon from '@/components/icons/linear-icon'
@@ -1872,7 +1874,12 @@ export function TaskDetails({ task, maxSandboxDuration = 300 }: TaskDetailsProps
                 <div className="bg-card rounded-md border overflow-hidden h-full flex flex-col">
                   {/* Preview Toolbar */}
                   <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/50 flex-shrink-0 min-h-[40px]">
-                    <Monitor className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    {/* Platform icon - Phase 4: Mobile Development */}
+                    {task.platform === 'mobile' ? (
+                      <Smartphone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <Monitor className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    )}
                     {task.sandboxUrl && sandboxHealth !== 'stopped' ? (
                       <a
                         href={task.sandboxUrl}
@@ -1970,65 +1977,86 @@ export function TaskDetails({ task, maxSandboxDuration = 300 }: TaskDetailsProps
                     </DropdownMenu>
                   </div>
                   <div className="overflow-y-auto flex-1">
-                    {task.sandboxUrl ? (
-                      <div className="relative w-full h-full">
-                        {sandboxHealth === 'running' ? (
-                          <iframe
-                            key={previewKey}
-                            src={task.sandboxUrl}
-                            className="w-full h-full border-0"
-                            title="Preview"
-                            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-                          />
-                        ) : null}
-                        {sandboxHealth === 'starting' && (
-                          <div className="absolute inset-0 bg-background flex items-center justify-center">
-                            <div className="text-center">
-                              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-                              <p className="text-sm text-muted-foreground">Starting dev server...</p>
-                            </div>
-                          </div>
-                        )}
-                        {sandboxHealth === 'stopped' && (
-                          <div className="absolute inset-0 bg-background flex items-center justify-center">
-                            <div className="text-center">
-                              <StopCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                              <p className="text-sm text-muted-foreground mb-1">Sandbox Stopped</p>
-                              <p className="text-xs text-muted-foreground">Start a new sandbox from the menu above</p>
-                            </div>
-                          </div>
-                        )}
-                        {sandboxHealth === 'error' && (
-                          <div className="absolute inset-0 bg-background flex items-center justify-center">
-                            <div className="text-center">
-                              <AlertCircle className="h-8 w-8 mx-auto mb-2 text-destructive" />
-                              <p className="text-sm text-muted-foreground mb-1">Application Error</p>
-                              <p className="text-xs text-muted-foreground">The dev server encountered an error</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                    {/* Platform-specific preview routing - Phase 4: Mobile Development */}
+                    {task.platform === 'mobile' ? (
+                      /* Mobile Preview: QR code with Metro URL */
+                      <MobilePreview
+                        metroUrl={task.metroUrl}
+                        status={
+                          sandboxHealth === 'running'
+                            ? 'running'
+                            : sandboxHealth === 'starting'
+                              ? 'starting'
+                              : sandboxHealth === 'error'
+                                ? 'error'
+                                : 'stopped'
+                        }
+                        error={task.error || undefined}
+                      />
                     ) : (
-                      <div className="flex items-center justify-center h-full text-muted-foreground text-sm p-6 text-center">
-                        <div>
-                          {currentStatus === 'pending' || currentStatus === 'processing' ? (
-                            <>
-                              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-                              <p className="mb-1">Creating sandbox...</p>
-                              <p className="text-xs">The preview will appear here once the dev server starts</p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="mb-1">Sandbox not running</p>
-                              <p className="text-xs">
-                                {task.keepAlive
-                                  ? 'Start it from the menu above to view the preview'
-                                  : 'This task does not have keep-alive enabled'}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      /* Web Preview: iframe */
+                      <>
+                        {task.sandboxUrl ? (
+                          <div className="relative w-full h-full">
+                            {sandboxHealth === 'running' ? (
+                              <iframe
+                                key={previewKey}
+                                src={task.sandboxUrl}
+                                className="w-full h-full border-0"
+                                title="Preview"
+                                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                              />
+                            ) : null}
+                            {sandboxHealth === 'starting' && (
+                              <div className="absolute inset-0 bg-background flex items-center justify-center">
+                                <div className="text-center">
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+                                  <p className="text-sm text-muted-foreground">Starting dev server...</p>
+                                </div>
+                              </div>
+                            )}
+                            {sandboxHealth === 'stopped' && (
+                              <div className="absolute inset-0 bg-background flex items-center justify-center">
+                                <div className="text-center">
+                                  <StopCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                                  <p className="text-sm text-muted-foreground mb-1">Sandbox Stopped</p>
+                                  <p className="text-xs text-muted-foreground">Start a new sandbox from the menu above</p>
+                                </div>
+                              </div>
+                            )}
+                            {sandboxHealth === 'error' && (
+                              <div className="absolute inset-0 bg-background flex items-center justify-center">
+                                <div className="text-center">
+                                  <AlertCircle className="h-8 w-8 mx-auto mb-2 text-destructive" />
+                                  <p className="text-sm text-muted-foreground mb-1">Application Error</p>
+                                  <p className="text-xs text-muted-foreground">The dev server encountered an error</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-muted-foreground text-sm p-6 text-center">
+                            <div>
+                              {currentStatus === 'pending' || currentStatus === 'processing' ? (
+                                <>
+                                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+                                  <p className="mb-1">Creating sandbox...</p>
+                                  <p className="text-xs">The preview will appear here once the dev server starts</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p className="mb-1">Sandbox not running</p>
+                                  <p className="text-xs">
+                                    {task.keepAlive
+                                      ? 'Start it from the menu above to view the preview'
+                                      : 'This task does not have keep-alive enabled'}
+                                  </p>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -2202,77 +2230,98 @@ export function TaskDetails({ task, maxSandboxDuration = 300 }: TaskDetailsProps
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  {task.sandboxUrl ? (
-                    <div className="overflow-y-auto flex-1 relative">
-                      {sandboxHealth === 'running' ? (
-                        <iframe
-                          key={previewKey}
-                          src={task.sandboxUrl}
-                          className="w-full h-full border-0"
-                          title="Preview"
-                          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
-                        />
-                      ) : null}
-                      {sandboxHealth === 'starting' && (
-                        <div className="absolute inset-0 bg-background flex items-center justify-center">
-                          <div className="text-center">
-                            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-                            <p className="text-sm text-muted-foreground">Starting dev server...</p>
-                          </div>
-                        </div>
-                      )}
-                      {sandboxHealth === 'stopped' && (
-                        <div className="absolute inset-0 bg-background flex items-center justify-center">
-                          <div className="text-center">
-                            <StopCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                            <p className="text-sm text-muted-foreground mb-1">Sandbox Stopped</p>
-                            <p className="text-xs text-muted-foreground">Start a new sandbox from the menu above</p>
-                          </div>
-                        </div>
-                      )}
-                      {sandboxHealth === 'error' && (
-                        <div className="absolute inset-0 bg-background flex items-center justify-center">
-                          <div className="text-center">
-                            <AlertCircle className="h-8 w-8 mx-auto mb-2 text-destructive" />
-                            <p className="text-sm text-muted-foreground mb-1">Application Error</p>
-                            <p className="text-xs text-muted-foreground">The dev server encountered an error</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  {/* Platform-specific preview routing (Mobile Layout) - Phase 4: Mobile Development */}
+                  {task.platform === 'mobile' ? (
+                    /* Mobile Preview: QR code with Metro URL */
+                    <MobilePreview
+                      metroUrl={task.metroUrl}
+                      status={
+                        sandboxHealth === 'running'
+                          ? 'running'
+                          : sandboxHealth === 'starting'
+                            ? 'starting'
+                            : sandboxHealth === 'error'
+                              ? 'error'
+                              : 'stopped'
+                      }
+                      error={task.error || undefined}
+                    />
                   ) : (
-                    <div className="flex items-center justify-center flex-1 text-muted-foreground text-sm p-6 text-center">
-                      <div>
-                        {currentStatus === 'pending' || currentStatus === 'processing' ? (
-                          <>
-                            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-                            <p className="mb-1">Creating sandbox...</p>
-                            <p className="text-xs mb-4">The preview will appear here once the dev server starts</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="mb-1">Sandbox not running</p>
-                            <p className="text-xs mb-4">
-                              {task.keepAlive
-                                ? 'Start the sandbox to view the preview'
-                                : 'This task does not have keep-alive enabled'}
-                            </p>
-                          </>
-                        )}
-                        {task.keepAlive && !task.sandboxUrl && (
-                          <Button size="sm" onClick={handleStartSandbox} disabled={isStartingSandbox} className="mt-2">
-                            {isStartingSandbox ? (
+                    /* Web Preview: iframe */
+                    <>
+                      {task.sandboxUrl ? (
+                        <div className="overflow-y-auto flex-1 relative">
+                          {sandboxHealth === 'running' ? (
+                            <iframe
+                              key={previewKey}
+                              src={task.sandboxUrl}
+                              className="w-full h-full border-0"
+                              title="Preview"
+                              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                            />
+                          ) : null}
+                          {sandboxHealth === 'starting' && (
+                            <div className="absolute inset-0 bg-background flex items-center justify-center">
+                              <div className="text-center">
+                                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">Starting dev server...</p>
+                              </div>
+                            </div>
+                          )}
+                          {sandboxHealth === 'stopped' && (
+                            <div className="absolute inset-0 bg-background flex items-center justify-center">
+                              <div className="text-center">
+                                <StopCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground mb-1">Sandbox Stopped</p>
+                                <p className="text-xs text-muted-foreground">Start a new sandbox from the menu above</p>
+                              </div>
+                            </div>
+                          )}
+                          {sandboxHealth === 'error' && (
+                            <div className="absolute inset-0 bg-background flex items-center justify-center">
+                              <div className="text-center">
+                                <AlertCircle className="h-8 w-8 mx-auto mb-2 text-destructive" />
+                                <p className="text-sm text-muted-foreground mb-1">Application Error</p>
+                                <p className="text-xs text-muted-foreground">The dev server encountered an error</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center flex-1 text-muted-foreground text-sm p-6 text-center">
+                          <div>
+                            {currentStatus === 'pending' || currentStatus === 'processing' ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Starting...
+                                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
+                                <p className="mb-1">Creating sandbox...</p>
+                                <p className="text-xs mb-4">The preview will appear here once the dev server starts</p>
                               </>
                             ) : (
-                              'Start Sandbox'
+                              <>
+                                <p className="mb-1">Sandbox not running</p>
+                                <p className="text-xs mb-4">
+                                  {task.keepAlive
+                                    ? 'Start the sandbox to view the preview'
+                                    : 'This task does not have keep-alive enabled'}
+                                </p>
+                              </>
                             )}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                            {task.keepAlive && !task.sandboxUrl && (
+                              <Button size="sm" onClick={handleStartSandbox} disabled={isStartingSandbox} className="mt-2">
+                                {isStartingSandbox ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Starting...
+                                  </>
+                                ) : (
+                                  'Start Sandbox'
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

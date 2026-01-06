@@ -1,0 +1,19 @@
+task_groups:
+  - name: pre-implementation-validation
+    claude_code_subagent: devops-engineer
+  - name: database-schema-extensions
+    claude_code_subagent: backend-developer
+  - name: ui-components-platform-selector
+    claude_code_subagent: frontend-developer
+  - name: railway-backend-integration
+    claude_code_subagent: devops-engineer
+  - name: ai-code-generation-context
+    claude_code_subagent: fullstack-developer
+  - name: component-gallery-mobile-components
+    claude_code_subagent: mobile-developer
+  - name: project-structure-monorepo-support
+    claude_code_subagent: fullstack-developer
+  - name: testing-quality-assurance
+    claude_code_subagent: test-automator
+  - name: documentation-deployment
+    claude_code_subagent: documentation-engineer

@@ -214,6 +214,7 @@ export function AppLayout({ children, initialSidebarWidth, initialSidebarOpen, i
     selectedModel: string
     installDependencies: boolean
     maxDuration: number
+    platform?: 'web' | 'mobile' // Phase 4: Mobile Development
   }) => {
     const id = nanoid()
     const optimisticTask: Task = {
@@ -241,6 +242,10 @@ export function AppLayout({ children, initialSidebarWidth, initialSidebarOpen, i
       prNumber: null,
       prStatus: null,
       prMergeCommitSha: null,
+      // Phase 4: Mobile Development fields
+      platform: taskData.platform || 'web',
+      metroUrl: null,
+      containerId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
       completedAt: null,

@@ -1,0 +1,80 @@
+# Railway Dockerfile for Expo + Metro Bundler
+# Phase 4: Mobile Development - Task 3.2
+#
+# This Dockerfile creates a container for running Expo Metro bundler
+# with support for mobile app development via Expo Go
+#
+# Build: docker build -f Dockerfile.expo -t turbocat-expo-metro .
+# Run: docker run -p 8081:8081 -p 19000:19000 -p 19001:19001 -p 19002:19002 turbocat-expo-metro
+
+# Base image: Node.js 20 LTS on Alpine for smaller image size
+FROM node:20-alpine
+
+# Labels for container identification
+LABEL maintainer="Turbocat Platform <support@turbocat.dev>"
+LABEL description="Expo Metro bundler for mobile app development"
+LABEL version="1.0.0"
+
+# Install system dependencies
+# - git: Required for Expo CLI operations
+# - curl: For health checks
+# - bash: For shell scripts
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash
+
+# Install Expo CLI and related tools globally
+# @expo/ngrok: For tunnel mode (required for QR code scanning)
+RUN npm install -g \
+    expo-cli@latest \
+    @expo/ngrok@^4.1.0
+
+# Create app directory with proper permissions
+WORKDIR /app
+
+# Create non-root user for security
+# Railway recommends running as non-root
+RUN addgroup -g 1001 -S expo && \
+    adduser -S expo -u 1001 -G expo && \
+    chown -R expo:expo /app
+
+# Copy package files first for better layer caching
+COPY package*.json ./
+
+# Install dependencies as root first
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy the rest of the application
+COPY --chown=expo:expo . .
+
+# Set environment variables for Metro bundler
+# EXPO_DEVTOOLS_LISTEN_ADDRESS: Allow connections from all interfaces
+# REACT_NATIVE_PACKAGER_HOSTNAME: Allow external connections to Metro
+# NODE_ENV: Production optimizations
+ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+ENV REACT_NATIVE_PACKAGER_HOSTNAME=0.0.0.0
+ENV NODE_ENV=production
+
+# Expose ports:
+# 8081: Metro bundler default port
+# 19000: Expo dev server
+# 19001: Expo dev server (debug)
+# 19002: Expo DevTools
+EXPOSE 8081 19000 19001 19002
+
+# Health check for Railway and container orchestration
+# Checks if the Metro bundler is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8081}/status || \
+        curl -f http://localhost:${PORT:-8081}/ || \
+        exit 1
+
+# Switch to non-root user for security
+USER expo
+
+# Default command: Start Metro bundler
+# - PORT: Use Railway-assigned port or default to 8081
+# - Non-interactive mode for CI/CD compatibility
+CMD ["sh", "-c", "npx expo start --port ${PORT:-8081} --non-interactive"]

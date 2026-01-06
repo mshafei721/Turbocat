@@ -17,6 +17,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Loader2, ArrowUp, Settings, X, Cable, Users } from 'lucide-react'
 import { Claude, Codex, Copilot, Cursor, Gemini, OpenCode } from '@/components/logos'
+import { PlatformSelector, type Platform } from '@/components/platform-selector'
 import { setInstallDependencies, setMaxDuration, setKeepAlive } from '@/lib/utils/cookies'
 import { useConnectors } from '@/components/connectors-provider'
 import { ConnectorDialog } from '@/components/connectors/manage-connectors'
@@ -46,6 +47,7 @@ interface TaskFormProps {
     installDependencies: boolean
     maxDuration: number
     keepAlive: boolean
+    platform: Platform
   }) => void
   isSubmitting: boolean
   selectedOwner: string
@@ -173,6 +175,18 @@ export function TaskForm({
   const [selectedModels, setSelectedModels] = useState<string[]>([])
   const [repos, setRepos] = useAtom(githubReposAtomFamily(selectedOwner))
   const [, setLoadingRepos] = useState(false)
+
+  // Platform state - Phase 4: Mobile Development
+  // Initialize from localStorage if available
+  const [platform, setPlatform] = useState<Platform>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('turbocat-last-platform')
+      if (saved === 'web' || saved === 'mobile') {
+        return saved
+      }
+    }
+    return 'web'
+  })
 
   // Options state - initialize with server values
   const [installDependencies, setInstallDependenciesState] = useState(initialInstallDependencies)
@@ -339,6 +353,7 @@ export function TaskForm({
         installDependencies,
         maxDuration,
         keepAlive,
+        platform,
       })
       return
     }
@@ -383,6 +398,7 @@ export function TaskForm({
       installDependencies,
       maxDuration,
       keepAlive,
+      platform,
     })
   }
 
@@ -414,11 +430,18 @@ export function TaskForm({
             />
           </div>
 
-          {/* Agent Selection */}
+          {/* Platform, Agent, and Model Selection */}
           <div className="p-4">
             <div className="flex items-center justify-between gap-2">
-              {/* Left side: Agent, Model, and Option Chips */}
+              {/* Left side: Platform, Agent, Model, and Option Chips */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
+                {/* Platform Selection - Phase 4: Mobile Development */}
+                <PlatformSelector
+                  value={platform}
+                  onChange={setPlatform}
+                  disabled={isSubmitting}
+                />
+
                 {/* Agent Selection - Icon only on mobile, minimal width */}
                 <Select
                   value={selectedAgent}

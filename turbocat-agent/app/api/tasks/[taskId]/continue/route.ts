@@ -321,6 +321,10 @@ async function continueTask(
     // Generate agent message ID for streaming updates
     const agentMessageId = generateId()
 
+    // Phase 4: Extract platform from task for platform-aware code generation
+    const { extractPlatform } = await import('@/lib/sandbox/platform-prompt')
+    const platform = extractPlatform(currentTask)
+
     const agentResult = await executeAgentInSandbox(
       sandbox,
       promptWithContext,
@@ -334,6 +338,7 @@ async function continueTask(
       currentTask.agentSessionId || undefined, // Pass agent session ID for resumption
       taskId, // taskId for streaming updates
       agentMessageId, // agentMessageId for streaming updates
+      platform, // Phase 4: Platform context for web vs mobile
     )
 
     console.log('Agent execution completed')

@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+.expo
+.expo-shared
+*.log
+.git
+.gitignore
+README.md
+.DS_Store
+.env.local
+.env.*.local

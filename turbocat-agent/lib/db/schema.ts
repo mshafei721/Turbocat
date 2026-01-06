@@ -106,6 +106,14 @@ export const tasks = pgTable('tasks', {
   }),
   prMergeCommitSha: text('pr_merge_commit_sha'),
   mcpServerIds: jsonb('mcp_server_ids').$type<string[]>(),
+  // Phase 4: Mobile Development - Platform selector and Railway container tracking
+  platform: text('platform', {
+    enum: ['web', 'mobile'],
+  })
+    .notNull()
+    .default('web'),
+  metroUrl: text('metro_url'), // Metro bundler URL for mobile projects (Railway)
+  containerId: text('container_id'), // Railway container ID for lifecycle management
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   completedAt: timestamp('completed_at'),
@@ -138,6 +146,10 @@ export const insertTaskSchema = z.object({
   prStatus: z.enum(['open', 'closed', 'merged']).optional(),
   prMergeCommitSha: z.string().optional(),
   mcpServerIds: z.array(z.string()).optional(),
+  // Phase 4: Mobile Development fields
+  platform: z.enum(['web', 'mobile']).default('web'),
+  metroUrl: z.string().optional(),
+  containerId: z.string().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
   completedAt: z.date().optional(),
@@ -169,6 +181,10 @@ export const selectTaskSchema = z.object({
   prStatus: z.enum(['open', 'closed', 'merged']).nullable(),
   prMergeCommitSha: z.string().nullable(),
   mcpServerIds: z.array(z.string()).nullable(),
+  // Phase 4: Mobile Development fields
+  platform: z.enum(['web', 'mobile']),
+  metroUrl: z.string().nullable(),
+  containerId: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   completedAt: z.date().nullable(),
@@ -424,6 +440,74 @@ export const selectSettingSchema = z.object({
 
 export type Setting = z.infer<typeof selectSettingSchema>
 export type InsertSetting = z.infer<typeof insertSettingSchema>
+
+// Phase 4: Railway Container Registry Table
+// Tracks active Railway containers for mobile project lifecycle management
+export const railwayContainers = pgTable('railway_containers', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }), // Foreign key to users table
+  taskId: text('task_id')
+    .notNull()
+    .references(() => tasks.id, { onDelete: 'cascade' }), // Foreign key to tasks table
+  containerId: text('container_id').notNull().unique(), // Railway container ID (unique)
+  metroUrl: text('metro_url').notNull(), // Public HTTPS URL for Metro bundler
+  status: text('status', {
+    enum: ['starting', 'running', 'stopped', 'error'],
+  })
+    .notNull()
+    .default('starting'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  lastActivityAt: timestamp('last_activity_at').defaultNow().notNull(),
+  resourceUsage: jsonb('resource_usage').$type<{
+    cpu?: number // CPU usage percentage
+    ram?: number // RAM usage in MB
+    network?: number // Network usage in MB
+  }>(),
+})
+
+export const insertRailwayContainerSchema = z.object({
+  id: z.string().optional(),
+  userId: z.string().min(1, 'User ID is required'),
+  taskId: z.string().min(1, 'Task ID is required'),
+  containerId: z.string().min(1, 'Container ID is required'),
+  metroUrl: z.string().url('Must be a valid URL'),
+  status: z.enum(['starting', 'running', 'stopped', 'error']).default('starting'),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  lastActivityAt: z.date().optional(),
+  resourceUsage: z
+    .object({
+      cpu: z.number().optional(),
+      ram: z.number().optional(),
+      network: z.number().optional(),
+    })
+    .optional(),
+})
+
+export const selectRailwayContainerSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  taskId: z.string(),
+  containerId: z.string(),
+  metroUrl: z.string(),
+  status: z.enum(['starting', 'running', 'stopped', 'error']),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  lastActivityAt: z.date(),
+  resourceUsage: z
+    .object({
+      cpu: z.number().optional(),
+      ram: z.number().optional(),
+      network: z.number().optional(),
+    })
+    .nullable(),
+})
+
+export type RailwayContainer = z.infer<typeof selectRailwayContainerSchema>
+export type InsertRailwayContainer = z.infer<typeof insertRailwayContainerSchema>
 
 // Keep legacy export for backwards compatibility during migration
 export const userConnections = accounts

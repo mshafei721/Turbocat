@@ -234,6 +234,7 @@ export async function POST(request: NextRequest) {
           userApiKeys,
           userGithubToken,
           githubUser,
+          validatedData.platform || 'web', // Phase 4: Platform for web vs mobile code generation
         )
       } catch (error) {
         console.error('Task processing failed:', error)
@@ -270,6 +271,7 @@ async function processTaskWithTimeout(
     name: string | null
     email: string | null
   } | null,
+  platform: 'web' | 'mobile' = 'web', // Phase 4: Platform for web vs mobile code generation
 ) {
   const TASK_TIMEOUT_MS = maxDuration * 60 * 1000 // Convert minutes to milliseconds
 
@@ -304,6 +306,7 @@ async function processTaskWithTimeout(
         apiKeys,
         githubToken,
         githubUser,
+        platform, // Phase 4: Platform for web vs mobile code generation
       ),
       timeoutPromise,
     ])
@@ -382,6 +385,7 @@ async function processTask(
     name: string | null
     email: string | null
   } | null,
+  platform: 'web' | 'mobile' = 'web', // Phase 4: Platform for web vs mobile code generation
 ) {
   let sandbox: Sandbox | null = null
   const logger = createTaskLogger(taskId)
@@ -595,6 +599,7 @@ async function processTask(
       undefined, // sessionId
       taskId, // taskId for streaming updates
       agentMessageId, // agentMessageId for streaming updates
+      platform, // Phase 4: Platform context for web vs mobile
     )
 
     console.log('Agent execution completed')
