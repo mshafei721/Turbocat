@@ -315,7 +315,7 @@ export function Chip({
         className,
       )}
       data-testid={testID}
-      aria-pressed={isSelected}
+      aria-pressed={isSelected ? true : false}
       aria-disabled={disabled}
     >
       {/* Left Icon */}

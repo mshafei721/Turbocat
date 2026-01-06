@@ -282,14 +282,14 @@ export const nativewindConfig = {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
+          ...colorPalette.primary,
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
-          ...colorPalette.primary,
         },
         secondary: {
+          ...colorPalette.secondary,
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
-          ...colorPalette.secondary,
         },
         muted: {
           DEFAULT: 'hsl(var(--muted))',

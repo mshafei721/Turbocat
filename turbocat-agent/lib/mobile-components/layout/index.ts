@@ -17,7 +17,14 @@ export type { CardProps, CardVariant } from './Card'
 export { Divider, DividerTemplate, DividerMetadata } from './Divider'
 export type { DividerProps, DividerOrientation, DividerThickness, DividerColor } from './Divider'
 
-export { Spacer, VSpacer, HSpacer, FlexSpacer, SpacerTemplate, SpacerMetadata } from './Spacer'
+export {
+  Spacer,
+  VSpacer,
+  HSpacer,
+  FlexSpacer,
+  SpacerTemplate,
+  SpacerMetadata,
+} from './Spacer'
 export type { SpacerProps, SpacerSize } from './Spacer'
 
 /**

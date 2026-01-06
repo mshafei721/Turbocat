@@ -324,7 +324,7 @@ export function List<T>({
       className={cn(
         'flex-1 overflow-auto',
         horizontal ? 'flex-row' : 'flex-col',
-        numColumns && numColumns > 1 && 'grid',
+        numColumns !== undefined && numColumns > 1 && 'grid',
         !showsScrollIndicator && 'scrollbar-hide',
         className,
       )}
