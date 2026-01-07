@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+# Navigate to backend directory and run lint-staged
+cd backend && npm run lint-staged

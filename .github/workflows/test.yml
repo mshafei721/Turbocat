@@ -1,0 +1,256 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/test.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/test.yml'
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        run: npm run typecheck
+
+      - name: Check formatting
+        run: npm run format:check
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Run unit tests
+        run: npm run test:unit -- --coverage --coverageReporters=json-summary --coverageReporters=text
+        env:
+          NODE_ENV: test
+          JWT_ACCESS_SECRET: test-access-secret-for-ci-pipeline-only
+          JWT_REFRESH_SECRET: test-refresh-secret-for-ci-pipeline-only
+          ENCRYPTION_KEY: test-encryption-key-for-ci-32chars
+
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: backend/coverage/
+          retention-days: 7
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: turbocat_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/turbocat_test
+
+      - name: Run integration tests
+        run: npm run test:integration -- --coverage --coverageReporters=json-summary --coverageReporters=text
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/turbocat_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/turbocat_test
+          REDIS_URL: redis://localhost:6379
+          JWT_ACCESS_SECRET: test-access-secret-for-ci-pipeline-only
+          JWT_REFRESH_SECRET: test-refresh-secret-for-ci-pipeline-only
+          ENCRYPTION_KEY: test-encryption-key-for-ci-32chars
+
+      - name: Upload integration test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-coverage
+          path: backend/coverage/
+          retention-days: 7
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests]
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: backend/dist/
+          retention-days: 7
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Download unit test coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/unit
+
+      - name: Download integration test coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-coverage
+          path: coverage/integration
+
+      - name: Comment coverage on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## Test Coverage Report\n\n';
+
+            // Read unit test coverage if exists
+            try {
+              const unitSummary = JSON.parse(fs.readFileSync('coverage/unit/coverage-summary.json', 'utf8'));
+              const unitTotal = unitSummary.total;
+              comment += '### Unit Tests\n';
+              comment += `| Metric | Coverage |\n`;
+              comment += `|--------|----------|\n`;
+              comment += `| Lines | ${unitTotal.lines.pct}% |\n`;
+              comment += `| Statements | ${unitTotal.statements.pct}% |\n`;
+              comment += `| Functions | ${unitTotal.functions.pct}% |\n`;
+              comment += `| Branches | ${unitTotal.branches.pct}% |\n\n`;
+            } catch (e) {
+              comment += '### Unit Tests\nNo coverage data available.\n\n';
+            }
+
+            // Read integration test coverage if exists
+            try {
+              const intSummary = JSON.parse(fs.readFileSync('coverage/integration/coverage-summary.json', 'utf8'));
+              const intTotal = intSummary.total;
+              comment += '### Integration Tests\n';
+              comment += `| Metric | Coverage |\n`;
+              comment += `|--------|----------|\n`;
+              comment += `| Lines | ${intTotal.lines.pct}% |\n`;
+              comment += `| Statements | ${intTotal.statements.pct}% |\n`;
+              comment += `| Functions | ${intTotal.functions.pct}% |\n`;
+              comment += `| Branches | ${intTotal.branches.pct}% |\n`;
+            } catch (e) {
+              comment += '### Integration Tests\nNo coverage data available.\n';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

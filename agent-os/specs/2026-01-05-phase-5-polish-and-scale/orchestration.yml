@@ -1,0 +1,84 @@
+task_groups:
+  # Phase 5.1: Foundation Setup
+  - name: project-initialization
+    claude_code_subagent: backend-developer
+  - name: database-setup
+    claude_code_subagent: sql-pro
+  - name: express-server-bootstrap
+    claude_code_subagent: backend-developer
+  - name: development-tooling
+    claude_code_subagent: backend-developer
+
+  # Phase 5.2: Database Schema & Models
+  - name: prisma-schema-design
+    claude_code_subagent: sql-pro
+  - name: database-migrations
+    claude_code_subagent: sql-pro
+  - name: data-access-layer
+    claude_code_subagent: sql-pro
+
+  # Phase 5.3: Authentication System
+  - name: supabase-auth-integration
+    claude_code_subagent: backend-developer
+  - name: authentication-endpoints
+    claude_code_subagent: backend-developer
+  - name: authorization-middleware
+    claude_code_subagent: backend-developer
+  - name: user-management-endpoints
+    claude_code_subagent: backend-developer
+
+  # Phase 5.4: Core API Endpoints
+  - name: agents-api
+    claude_code_subagent: api-designer
+  - name: workflows-api
+    claude_code_subagent: api-designer
+  - name: templates-api
+    claude_code_subagent: api-designer
+  - name: deployments-api
+    claude_code_subagent: api-designer
+  - name: analytics-api
+    claude_code_subagent: api-designer
+  - name: execution-endpoints
+    claude_code_subagent: api-designer
+
+  # Phase 5.5: Agent Core Engine
+  - name: job-queue-setup
+    claude_code_subagent: backend-developer
+  - name: workflow-execution-engine
+    claude_code_subagent: backend-developer
+  - name: agent-execution-implementation
+    claude_code_subagent: backend-developer
+  - name: execution-monitoring
+    claude_code_subagent: backend-developer
+
+  # Phase 5.6: Testing Infrastructure
+  - name: unit-test-setup
+    claude_code_subagent: test-automator
+  - name: service-layer-tests
+    claude_code_subagent: test-automator
+  - name: integration-test-setup
+    claude_code_subagent: test-automator
+  - name: api-integration-tests
+    claude_code_subagent: test-automator
+  - name: e2e-test-setup
+    claude_code_subagent: test-automator
+  - name: e2e-tests
+    claude_code_subagent: test-automator
+  - name: test-review-gap-analysis
+    claude_code_subagent: test-automator
+
+  # Phase 5.7: Documentation & Deployment
+  - name: api-documentation
+    claude_code_subagent: documentation-engineer
+  - name: developer-documentation
+    claude_code_subagent: documentation-engineer
+  - name: deployment-setup
+    claude_code_subagent: deployment-engineer
+  - name: environment-configuration-documentation
+    claude_code_subagent: documentation-engineer
+
+  # Final Verification
+  - name: final-testing-verification
+    claude_code_subagent: test-automator
+  - name: documentation-review-handoff
+    claude_code_subagent: documentation-engineer

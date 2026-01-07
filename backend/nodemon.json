@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/nodemon.json",
+  "watch": ["src"],
+  "ext": "ts,json",
+  "ignore": [
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/__tests__/**",
+    "node_modules",
+    "dist",
+    "coverage",
+    "*.log"
+  ],
+  "exec": "ts-node-dev --respawn --transpile-only --clear src/server.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 500,
+  "verbose": false,
+  "legacyWatch": false
+}

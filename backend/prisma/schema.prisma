@@ -1,0 +1,559 @@
+// Turbocat Backend - Prisma Schema
+// Documentation: https://pris.ly/d/prisma-schema
+// This schema is configured for Supabase PostgreSQL
+// Note: Connection URLs are configured in prisma.config.ts (Prisma 7+)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["backend"]
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum UserRole {
+  ADMIN @map("admin")
+  USER  @map("user")
+  AGENT @map("agent")
+
+  @@schema("backend")
+}
+
+enum AgentType {
+  CODE     @map("code")
+  API      @map("api")
+  LLM      @map("llm")
+  DATA     @map("data")
+  WORKFLOW @map("workflow")
+
+  @@schema("backend")
+}
+
+enum AgentStatus {
+  DRAFT    @map("draft")
+  ACTIVE   @map("active")
+  INACTIVE @map("inactive")
+  ARCHIVED @map("archived")
+
+  @@schema("backend")
+}
+
+enum WorkflowStatus {
+  DRAFT    @map("draft")
+  ACTIVE   @map("active")
+  INACTIVE @map("inactive")
+  ARCHIVED @map("archived")
+
+  @@schema("backend")
+}
+
+enum WorkflowStepType {
+  AGENT     @map("agent")
+  CONDITION @map("condition")
+  LOOP      @map("loop")
+  PARALLEL  @map("parallel")
+  WAIT      @map("wait")
+
+  @@schema("backend")
+}
+
+enum ErrorHandling {
+  FAIL     @map("fail")
+  CONTINUE @map("continue")
+  RETRY    @map("retry")
+
+  @@schema("backend")
+}
+
+enum ExecutionStatus {
+  PENDING   @map("pending")
+  RUNNING   @map("running")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+  CANCELLED @map("cancelled")
+  TIMEOUT   @map("timeout")
+
+  @@schema("backend")
+}
+
+enum TriggerType {
+  MANUAL    @map("manual")
+  SCHEDULED @map("scheduled")
+  API       @map("api")
+  WEBHOOK   @map("webhook")
+  EVENT     @map("event")
+
+  @@schema("backend")
+}
+
+enum LogLevel {
+  DEBUG @map("debug")
+  INFO  @map("info")
+  WARN  @map("warn")
+  ERROR @map("error")
+  FATAL @map("fatal")
+
+  @@schema("backend")
+}
+
+enum StepStatus {
+  PENDING   @map("pending")
+  RUNNING   @map("running")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+  SKIPPED   @map("skipped")
+
+  @@schema("backend")
+}
+
+enum TemplateType {
+  AGENT    @map("agent")
+  WORKFLOW @map("workflow")
+  STEP     @map("step")
+
+  @@schema("backend")
+}
+
+enum Environment {
+  DEVELOPMENT @map("development")
+  STAGING     @map("staging")
+  PRODUCTION  @map("production")
+
+  @@schema("backend")
+}
+
+enum DeploymentStatus {
+  STOPPED     @map("stopped")
+  STARTING    @map("starting")
+  RUNNING     @map("running")
+  STOPPING    @map("stopping")
+  FAILED      @map("failed")
+  MAINTENANCE @map("maintenance")
+
+  @@schema("backend")
+}
+
+enum HealthStatus {
+  UNKNOWN   @map("unknown")
+  HEALTHY   @map("healthy")
+  UNHEALTHY @map("unhealthy")
+  DEGRADED  @map("degraded")
+
+  @@schema("backend")
+}
+
+// =============================================================================
+// MODELS
+// =============================================================================
+
+/// User model - stores user account information and authentication details
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique @db.VarChar(255)
+  passwordHash    String?   @map("password_hash") @db.VarChar(255)
+  fullName        String?   @map("full_name") @db.VarChar(255)
+  avatarUrl       String?   @map("avatar_url")
+  role            UserRole  @default(USER)
+  isActive        Boolean   @default(true) @map("is_active")
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  lastLoginAt     DateTime? @map("last_login_at")
+  preferences     Json      @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  // Relations
+  agents      Agent[]
+  workflows   Workflow[]
+  executions  Execution[]
+  templates   Template[]
+  deployments Deployment[]
+  apiKeys     ApiKey[]
+  auditLogs   AuditLog[]
+
+  @@index([email])
+  @@index([role])
+  @@index([createdAt(sort: Desc)])
+  @@schema("backend")
+  @@map("users")
+}
+
+/// Agent model - defines AI agents with their configurations and capabilities
+model Agent {
+  id                      String      @id @default(uuid()) @db.Uuid
+  name                    String      @db.VarChar(255)
+  description             String?
+  type                    AgentType
+  status                  AgentStatus @default(DRAFT)
+  version                 Int         @default(1)
+  parentId                String?     @map("parent_id") @db.Uuid
+  userId                  String      @map("user_id") @db.Uuid
+
+  // Configuration
+  config                  Json        @default("{}")
+  capabilities            Json        @default("[]")
+  parameters              Json        @default("{}")
+
+  // Resource limits
+  maxExecutionTime        Int?        @default(300) @map("max_execution_time")
+  maxMemoryMb             Int?        @default(512) @map("max_memory_mb")
+  maxConcurrentExecutions Int?        @default(1) @map("max_concurrent_executions")
+
+  // Metrics
+  totalExecutions         Int         @default(0) @map("total_executions")
+  successfulExecutions    Int         @default(0) @map("successful_executions")
+  failedExecutions        Int         @default(0) @map("failed_executions")
+  avgExecutionTimeMs      Int         @default(0) @map("avg_execution_time_ms")
+
+  // Metadata
+  tags                    String[]    @default([])
+  isPublic                Boolean     @default(false) @map("is_public")
+  isTemplate              Boolean     @default(false) @map("is_template")
+
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+  deletedAt               DateTime?   @map("deleted_at")
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent        Agent?         @relation("AgentVersions", fields: [parentId], references: [id], onDelete: SetNull)
+  versions      Agent[]        @relation("AgentVersions")
+  workflowSteps WorkflowStep[]
+  deployments   Deployment[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([isPublic])
+  @@index([tags])
+  @@index([createdAt(sort: Desc)])
+  @@schema("backend")
+  @@map("agents")
+}
+
+/// Workflow model - defines workflows that orchestrate multiple agents
+model Workflow {
+  id                   String         @id @default(uuid()) @db.Uuid
+  name                 String         @db.VarChar(255)
+  description          String?
+  userId               String         @map("user_id") @db.Uuid
+  status               WorkflowStatus @default(DRAFT)
+  version              Int            @default(1)
+  parentId             String?        @map("parent_id") @db.Uuid
+
+  // Workflow definition
+  definition           Json           @default("{}")
+  triggerConfig        Json           @default("{}") @map("trigger_config")
+
+  // Scheduling
+  scheduleEnabled      Boolean        @default(false) @map("schedule_enabled")
+  scheduleCron         String?        @map("schedule_cron") @db.VarChar(100)
+  scheduleTimezone     String         @default("UTC") @map("schedule_timezone") @db.VarChar(50)
+
+  // Metrics
+  totalExecutions      Int            @default(0) @map("total_executions")
+  successfulExecutions Int            @default(0) @map("successful_executions")
+  failedExecutions     Int            @default(0) @map("failed_executions")
+  avgExecutionTimeMs   Int            @default(0) @map("avg_execution_time_ms")
+  lastExecutionAt      DateTime?      @map("last_execution_at")
+
+  // Metadata
+  tags                 String[]       @default([])
+  isPublic             Boolean        @default(false) @map("is_public")
+
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+  deletedAt            DateTime?      @map("deleted_at")
+
+  // Relations
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent      Workflow?      @relation("WorkflowVersions", fields: [parentId], references: [id], onDelete: SetNull)
+  versions    Workflow[]     @relation("WorkflowVersions")
+  steps       WorkflowStep[]
+  executions  Execution[]
+  deployments Deployment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([scheduleEnabled])
+  @@index([tags])
+  @@index([createdAt(sort: Desc)])
+  @@schema("backend")
+  @@map("workflows")
+}
+
+/// WorkflowStep model - defines individual steps within workflows
+model WorkflowStep {
+  id           String           @id @default(uuid()) @db.Uuid
+  workflowId   String           @map("workflow_id") @db.Uuid
+  agentId      String?          @map("agent_id") @db.Uuid
+
+  stepKey      String           @map("step_key") @db.VarChar(100)
+  stepName     String           @map("step_name") @db.VarChar(255)
+  stepType     WorkflowStepType @map("step_type")
+  position     Int
+
+  // Configuration
+  config       Json             @default("{}")
+  inputs       Json             @default("{}")
+  outputs      Json             @default("{}")
+
+  // Dependencies
+  dependsOn    String[]         @default([]) @map("depends_on")
+
+  // Error handling
+  retryCount   Int              @default(0) @map("retry_count")
+  retryDelayMs Int              @default(1000) @map("retry_delay_ms")
+  timeoutMs    Int              @default(30000) @map("timeout_ms")
+  onError      ErrorHandling    @default(FAIL) @map("on_error")
+
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  workflow      Workflow       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  agent         Agent?         @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  executionLogs ExecutionLog[]
+
+  @@unique([workflowId, stepKey])
+  @@index([workflowId])
+  @@index([agentId])
+  @@index([workflowId, position])
+  @@schema("backend")
+  @@map("workflow_steps")
+}
+
+/// Execution model - records of workflow executions
+model Execution {
+  id             String          @id @default(uuid()) @db.Uuid
+  workflowId     String          @map("workflow_id") @db.Uuid
+  userId         String          @map("user_id") @db.Uuid
+
+  status         ExecutionStatus @default(PENDING)
+  triggerType    TriggerType     @map("trigger_type")
+  triggerData    Json            @default("{}") @map("trigger_data")
+
+  // Execution details
+  startedAt      DateTime?       @map("started_at")
+  completedAt    DateTime?       @map("completed_at")
+  durationMs     Int?            @map("duration_ms")
+
+  // Input/Output
+  inputData      Json            @default("{}") @map("input_data")
+  outputData     Json            @default("{}") @map("output_data")
+
+  // Results
+  stepsCompleted Int             @default(0) @map("steps_completed")
+  stepsFailed    Int             @default(0) @map("steps_failed")
+  stepsTotal     Int             @default(0) @map("steps_total")
+
+  // Error information
+  errorMessage   String?         @map("error_message")
+  errorStack     String?         @map("error_stack")
+
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  workflow Workflow       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs     ExecutionLog[]
+
+  @@index([workflowId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([completedAt(sort: Desc)])
+  @@schema("backend")
+  @@map("executions")
+}
+
+/// ExecutionLog model - detailed logs for each execution step
+model ExecutionLog {
+  id              String       @id @default(uuid()) @db.Uuid
+  executionId     String       @map("execution_id") @db.Uuid
+  workflowStepId  String?      @map("workflow_step_id") @db.Uuid
+
+  level           LogLevel     @default(INFO)
+  message         String
+  metadata        Json         @default("{}")
+
+  // Step execution details
+  stepKey         String?      @map("step_key") @db.VarChar(100)
+  stepStatus      StepStatus?  @map("step_status")
+  stepStartedAt   DateTime?    @map("step_started_at")
+  stepCompletedAt DateTime?    @map("step_completed_at")
+  stepDurationMs  Int?         @map("step_duration_ms")
+
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  execution    Execution     @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  workflowStep WorkflowStep? @relation(fields: [workflowStepId], references: [id], onDelete: SetNull)
+
+  @@index([executionId, createdAt])
+  @@index([level])
+  @@index([createdAt(sort: Desc)])
+  @@schema("backend")
+  @@map("execution_logs")
+}
+
+/// Template model - reusable templates for agents and workflows
+model Template {
+  id            String       @id @default(uuid()) @db.Uuid
+  name          String       @db.VarChar(255)
+  description   String?
+  category      String       @db.VarChar(100)
+  type          TemplateType
+
+  userId        String?      @map("user_id") @db.Uuid
+
+  // Template content
+  templateData  Json         @map("template_data")
+
+  // Metadata
+  tags          String[]     @default([])
+  isOfficial    Boolean      @default(false) @map("is_official")
+  isPublic      Boolean      @default(false) @map("is_public")
+
+  // Usage stats
+  usageCount    Int          @default(0) @map("usage_count")
+  ratingAverage Decimal      @default(0) @map("rating_average") @db.Decimal(3, 2)
+  ratingCount   Int          @default(0) @map("rating_count")
+
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  deletedAt     DateTime?    @map("deleted_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([type])
+  @@index([isOfficial])
+  @@index([isPublic])
+  @@index([tags])
+  @@index([usageCount(sort: Desc)])
+  @@schema("backend")
+  @@map("templates")
+}
+
+/// Deployment model - deployed instances of agents or workflows
+model Deployment {
+  id                 String           @id @default(uuid()) @db.Uuid
+  name               String           @db.VarChar(255)
+  description        String?
+
+  userId             String           @map("user_id") @db.Uuid
+  workflowId         String?          @map("workflow_id") @db.Uuid
+  agentId            String?          @map("agent_id") @db.Uuid
+
+  environment        Environment      @default(PRODUCTION)
+  status             DeploymentStatus @default(STOPPED)
+
+  // Configuration
+  config             Json             @default("{}")
+  environmentVars    Json             @default("{}") @map("environment_vars")
+
+  // Endpoints
+  endpointUrl        String?          @map("endpoint_url")
+  apiKeyHash         String?          @map("api_key_hash") @db.VarChar(255)
+
+  // Resource allocation
+  allocatedMemoryMb  Int              @default(512) @map("allocated_memory_mb")
+  allocatedCpuShares Int              @default(1024) @map("allocated_cpu_shares")
+
+  // Lifecycle
+  deployedAt         DateTime?        @map("deployed_at")
+  lastHealthCheckAt  DateTime?        @map("last_health_check_at")
+  healthStatus       HealthStatus     @default(UNKNOWN) @map("health_status")
+
+  // Metrics
+  totalRequests      Int              @default(0) @map("total_requests")
+  totalErrors        Int              @default(0) @map("total_errors")
+  avgResponseTimeMs  Int              @default(0) @map("avg_response_time_ms")
+
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  deletedAt          DateTime?        @map("deleted_at")
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workflow Workflow? @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+  agent    Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([workflowId])
+  @@index([agentId])
+  @@index([status])
+  @@index([environment])
+  @@schema("backend")
+  @@map("deployments")
+}
+
+/// ApiKey model - API keys for programmatic access
+model ApiKey {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @map("user_id") @db.Uuid
+
+  name               String    @db.VarChar(255)
+  keyHash            String    @unique @map("key_hash") @db.VarChar(255)
+  keyPrefix          String    @map("key_prefix") @db.VarChar(20)
+
+  scopes             String[]  @default([])
+
+  isActive           Boolean   @default(true) @map("is_active")
+  expiresAt          DateTime? @map("expires_at")
+  lastUsedAt         DateTime? @map("last_used_at")
+
+  usageCount         Int       @default(0) @map("usage_count")
+  rateLimitPerMinute Int       @default(60) @map("rate_limit_per_minute")
+
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([keyHash])
+  @@index([keyPrefix])
+  @@index([expiresAt])
+  @@schema("backend")
+  @@map("api_keys")
+}
+
+/// AuditLog model - comprehensive audit trail for all system operations
+model AuditLog {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String?   @map("user_id") @db.Uuid
+
+  action       String    @db.VarChar(100)
+  resourceType String    @map("resource_type") @db.VarChar(50)
+  resourceId   String?   @map("resource_id") @db.Uuid
+
+  changes      Json      @default("{}")
+  metadata     Json      @default("{}")
+
+  ipAddress    String?   @map("ip_address")
+  userAgent    String?   @map("user_agent")
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([resourceType, resourceId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+  @@schema("backend")
+  @@map("audit_logs")
+}
