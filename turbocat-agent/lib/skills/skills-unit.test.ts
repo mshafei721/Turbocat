@@ -11,8 +11,20 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { SkillParser } from './parser'
 import { SkillDetector } from './detector'
 import { SkillExecutor } from './executor'
-import type { SkillDefinition, ExecutionContext, SkillRegistry } from './types'
+import { SkillRegistry } from './registry'
+import type { SkillDefinition, ExecutionContext, SkillRegistryListOptions } from './types'
 import { nanoid } from 'nanoid'
+
+/**
+ * Interface for mock registry (same shape as SkillRegistry class)
+ */
+interface MockSkillRegistry {
+  register: (skill: SkillDefinition) => Promise<string>
+  update: (slug: string, data: Partial<SkillDefinition>) => Promise<void>
+  get: (slug: string) => Promise<SkillDefinition | null>
+  list: (options?: SkillRegistryListOptions) => Promise<SkillDefinition[]>
+  deactivate: (slug: string) => Promise<void>
+}
 
 describe('Skills System - Unit Tests', () => {
   /**
@@ -124,7 +136,7 @@ Body content
    */
   describe('SkillDetector - Pattern Matching', () => {
     let detector: SkillDetector
-    let mockRegistry: SkillRegistry
+    let mockRegistry: MockSkillRegistry
 
     beforeEach(async () => {
       // Create mock registry with test skills
@@ -169,16 +181,16 @@ Body content
         register: async () => '',
         update: async () => {},
         get: async () => null,
-        list: async (options?: any) => {
+        list: async (options?: SkillRegistryListOptions) => {
           if (options?.active === true) {
             return skills.filter((s) => s.isActive)
           }
           return skills
         },
         deactivate: async () => {},
-      } as SkillRegistry
+      }
 
-      detector = new SkillDetector(mockRegistry)
+      detector = new SkillDetector(mockRegistry as unknown as SkillRegistry)
     })
 
     it('should detect skill from keyword pattern match', async () => {

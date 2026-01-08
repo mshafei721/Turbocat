@@ -330,7 +330,7 @@ describe('Database Design Skill', () => {
         content: 'text',
         userId: 'text',
       }
-      const relationships = [
+      const relationships: Array<{ from: string; to: string; type: 'many-to-one' | 'one-to-many' | 'many-to-many'; foreignKey?: string; joinTable?: string }> = [
         {
           from: 'posts',
           to: 'users',
@@ -349,7 +349,7 @@ describe('Database Design Skill', () => {
 
     it('should generate complete schema file with imports and exports', () => {
       // Arrange
-      const entities = [
+      const entities: Array<{ name: string; fields: { [field: string]: string } }> = [
         {
           name: 'users',
           fields: { id: 'text', name: 'text', email: 'text' },

@@ -346,6 +346,6 @@ describe('Template Loader Utility', () => {
     const loaderPath = path.join(process.cwd(), 'lib', 'templates', 'loader.ts')
     const content = fs.readFileSync(loaderPath, 'utf-8')
 
-    expect(content).toContain('prompt') || expect(content).toContain('input')
+    expect(content.includes('prompt') || content.includes('input')).toBe(true)
   })
 })

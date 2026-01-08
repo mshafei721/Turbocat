@@ -154,7 +154,7 @@ describe('Supabase Setup Skill', () => {
 
     it('should generate RLS policy creation command', () => {
       // Arrange
-      const policy = {
+      const policy: { table: string; name: string; operation: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE' | 'ALL'; using?: string; withCheck?: string } = {
         table: 'posts',
         name: 'Users can view published posts',
         operation: 'SELECT',

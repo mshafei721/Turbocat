@@ -67,22 +67,45 @@ vi.mock('@/components/task-details', () => ({
   ),
 }))
 
+/**
+ * Helper function to create mock task objects for testing.
+ * These mocks are used with mocked components, so they don't need
+ * all properties from the actual Task type.
+ */
+function createMockTask(overrides: {
+  id?: string
+  title?: string
+  platform?: string
+  sandboxUrl?: string | null
+  metroUrl?: string
+  description?: string
+}) {
+  return {
+    id: overrides.id || 'task-123',
+    title: overrides.title || 'Test Task',
+    platform: overrides.platform || 'web',
+    sandboxUrl: overrides.sandboxUrl ?? null,
+    metroUrl: overrides.metroUrl,
+    description: overrides.description || 'Test description',
+  }
+}
+
 describe('Platform-Specific Preview E2E Tests', () => {
   /**
    * Test 1: Web task displays iframe preview
    */
   it('should display iframe for web platform tasks', async () => {
-    const mockTask = {
+    const mockTask = createMockTask({
       id: 'task-web-123',
       title: 'Web Dashboard',
       platform: 'web',
       sandboxUrl: 'https://vercel-sandbox.example.com/web-123',
       description: 'A web dashboard',
-    }
+    })
 
     const { TaskDetails } = await import('@/components/task-details')
 
-    render(<TaskDetails task={mockTask} />)
+    render(<TaskDetails task={mockTask as any} />)
 
     await waitFor(() => {
       const iframe = screen.getByTestId('vercel-sandbox')
@@ -157,23 +180,23 @@ describe('Platform-Specific Preview E2E Tests', () => {
    * Test 5: Switching between tasks updates preview
    */
   it('should update preview when switching between tasks', async () => {
-    const webTask = {
+    const webTask = createMockTask({
       id: 'task-web-123',
       title: 'Web App',
       platform: 'web',
       sandboxUrl: 'https://vercel-sandbox.example.com/web-123',
-    }
+    })
 
-    const mobileTask = {
+    const mobileTask = createMockTask({
       id: 'task-mobile-123',
       title: 'Mobile App',
       platform: 'mobile',
       metroUrl: 'https://mobile-123.up.railway.app',
-    }
+    })
 
     const { TaskDetails } = await import('@/components/task-details')
 
-    const { rerender } = render(<TaskDetails task={webTask} />)
+    const { rerender } = render(<TaskDetails task={webTask as any} />)
 
     // Verify web preview
     await waitFor(() => {
@@ -182,7 +205,7 @@ describe('Platform-Specific Preview E2E Tests', () => {
     })
 
     // Switch to mobile task
-    rerender(<TaskDetails task={mobileTask} />)
+    rerender(<TaskDetails task={mobileTask as any} />)
 
     // Verify mobile preview section
     await waitFor(() => {
@@ -220,14 +243,14 @@ describe('Platform-Specific Preview E2E Tests', () => {
    */
   it('should display metro logs in mobile preview', async () => {
     const mockLogs = [
-      { timestamp: new Date(), level: 'info', message: 'Metro started' },
-      { timestamp: new Date(), level: 'info', message: 'Bundling app' },
-      { timestamp: new Date(), level: 'warn', message: 'Performance warning' },
+      { timestamp: new Date().toISOString(), level: 'info', message: 'Metro started' },
+      { timestamp: new Date().toISOString(), level: 'info', message: 'Bundling app' },
+      { timestamp: new Date().toISOString(), level: 'warn', message: 'Performance warning' },
     ]
 
     const { MobilePreview } = await import('@/components/mobile-preview')
 
-    render(<MobilePreview metroUrl="https://mobile-123.up.railway.app" status="running" logs={mockLogs} />)
+    render(<MobilePreview metroUrl="https://mobile-123.up.railway.app" status="running" logs={mockLogs as any} />)
 
     const logsContainer = screen.getByTestId('metro-logs')
     expect(logsContainer.textContent).toContain('3 logs')
@@ -237,16 +260,16 @@ describe('Platform-Specific Preview E2E Tests', () => {
    * Test 9: Web and mobile previews don't show simultaneously
    */
   it('should not display both web and mobile previews at same time', async () => {
-    const webTask = {
+    const webTask = createMockTask({
       id: 'task-web-123',
       title: 'Web App',
       platform: 'web',
       sandboxUrl: 'https://vercel-sandbox.example.com/web-123',
-    }
+    })
 
     const { TaskDetails } = await import('@/components/task-details')
 
-    render(<TaskDetails task={webTask} />)
+    render(<TaskDetails task={webTask as any} />)
 
     // Web iframe should be visible
     const iframe = screen.getByTestId('vercel-sandbox')
@@ -261,33 +284,33 @@ describe('Platform-Specific Preview E2E Tests', () => {
    * Test 10: Preview persists task state when switching tasks
    */
   it('should maintain independent state for web and mobile previews', async () => {
-    const webTask = {
+    const webTask = createMockTask({
       id: 'task-web-123',
       title: 'Web App',
       platform: 'web',
       sandboxUrl: 'https://vercel-sandbox.example.com/web-123',
-    }
+    })
 
-    const mobileTask = {
+    const mobileTask = createMockTask({
       id: 'task-mobile-123',
       title: 'Mobile App',
       platform: 'mobile',
       metroUrl: 'https://mobile-123.up.railway.app',
-    }
+    })
 
     const { TaskDetails } = await import('@/components/task-details')
 
     // Start with web task
-    const { rerender } = render(<TaskDetails task={webTask} />)
+    const { rerender } = render(<TaskDetails task={webTask as any} />)
 
     const iframeWeb = screen.getByTestId('vercel-sandbox')
     const iframeSrcBefore = iframeWeb.getAttribute('src')
 
     // Switch to mobile
-    rerender(<TaskDetails task={mobileTask} />)
+    rerender(<TaskDetails task={mobileTask as any} />)
 
     // Switch back to web
-    rerender(<TaskDetails task={webTask} />)
+    rerender(<TaskDetails task={webTask as any} />)
 
     // Web iframe URL should remain the same
     const iframeWebAfter = screen.getByTestId('vercel-sandbox')
@@ -318,7 +341,7 @@ describe('Platform-Specific Preview E2E Tests', () => {
   it('should handle undefined metro URL gracefully', async () => {
     const { MobilePreview } = await import('@/components/mobile-preview')
 
-    render(<MobilePreview metroUrl={undefined} status="starting" />)
+    render(<MobilePreview metroUrl={null} status="starting" />)
 
     const preview = screen.getByTestId('mobile-preview')
     expect(preview).toBeInTheDocument()
@@ -331,16 +354,16 @@ describe('Platform-Specific Preview E2E Tests', () => {
    * Test 13: Web preview handles missing sandbox URL gracefully
    */
   it('should handle missing sandbox URL gracefully', async () => {
-    const webTask = {
+    const webTask = createMockTask({
       id: 'task-web-123',
       title: 'Web App',
       platform: 'web',
-      sandboxUrl: undefined,
-    }
+      sandboxUrl: null,
+    })
 
     const { TaskDetails } = await import('@/components/task-details')
 
-    render(<TaskDetails task={webTask} />)
+    render(<TaskDetails task={webTask as any} />)
 
     const taskDetails = screen.getByTestId('task-details')
     expect(taskDetails).toBeInTheDocument()
@@ -356,17 +379,17 @@ describe('Platform-Specific Preview E2E Tests', () => {
   it('should render safely when task details change', async () => {
     const { TaskDetails } = await import('@/components/task-details')
 
-    const mockTask = {
+    const mockTask = createMockTask({
       id: 'task-123',
       title: 'Test Task',
       platform: 'web',
       sandboxUrl: 'https://example.com',
-    }
+    })
 
-    const { rerender } = render(<TaskDetails task={mockTask} />)
+    const { rerender } = render(<TaskDetails task={mockTask as any} />)
 
     expect(() => {
-      rerender(<TaskDetails task={{ ...mockTask, platform: 'mobile' }} />)
+      rerender(<TaskDetails task={{ ...mockTask, platform: 'mobile' } as any} />)
     }).not.toThrow()
   })
 
@@ -374,19 +397,19 @@ describe('Platform-Specific Preview E2E Tests', () => {
    * Test 15: Mobile and web task platform values are strings
    */
   it('should have valid platform string values', async () => {
-    const webTask = {
+    const webTask = createMockTask({
       id: 'task-web-123',
       title: 'Web App',
       platform: 'web',
       sandboxUrl: 'https://example.com',
-    }
+    })
 
-    const mobileTask = {
+    const mobileTask = createMockTask({
       id: 'task-mobile-123',
       title: 'Mobile App',
       platform: 'mobile',
       metroUrl: 'https://mobile-123.up.railway.app',
-    }
+    })
 
     expect(typeof webTask.platform).toBe('string')
     expect(typeof mobileTask.platform).toBe('string')

@@ -40,7 +40,7 @@ vi.mock('../db/client', () => ({
 const mockSkillsDb = new Map<string, any>()
 
 // Setup before all tests
-beforeAll(() => {
+beforeAll(async () => {
   // Mock the database operations
   const { db } = vi.mocked(await import('../db/client'))
 

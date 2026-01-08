@@ -59,9 +59,10 @@ vi.mock('@/lib/railway/lifecycle', () => ({
 
 vi.mock('@/lib/railway/qrcode', () => ({
   generateQRCode: vi.fn().mockResolvedValue({
-    svg: '<svg></svg>',
-    dataUrl: 'data:image/svg+xml;base64,...',
-    error: null,
+    data: '<svg></svg>',
+    format: 'svg',
+    url: 'https://mobile-xyz123.up.railway.app',
+    generatedAt: new Date(),
   }),
   cacheQRCode: vi.fn(),
   getCachedQRCode: vi.fn().mockResolvedValue(null),
@@ -123,7 +124,7 @@ describe('Mobile Task Flow Integration Tests', () => {
     const { createLifecycleService } = await import('@/lib/railway/lifecycle')
     const { createRailwayClient } = await import('@/lib/railway/client')
 
-    const client = createRailwayClient('test-api-key')
+    const client = createRailwayClient({ apiToken: 'test-api-key' })
     const lifecycleService = createLifecycleService(client)
 
     const result = await lifecycleService.provisionContainer('task-123', 'user-789')
@@ -140,7 +141,7 @@ describe('Mobile Task Flow Integration Tests', () => {
     const { createLifecycleService } = await import('@/lib/railway/lifecycle')
     const { createRailwayClient } = await import('@/lib/railway/client')
 
-    const client = createRailwayClient('test-api-key')
+    const client = createRailwayClient({ apiToken: 'test-api-key' })
     const lifecycleService = createLifecycleService(client)
 
     const statusResult = await lifecycleService.monitorContainer('railway-mobile-xyz123')
@@ -160,9 +161,9 @@ describe('Mobile Task Flow Integration Tests', () => {
     const metroUrl = 'https://mobile-xyz123.up.railway.app'
     const qrResult = await generateQRCode(metroUrl)
 
-    expect(qrResult.svg).toBeDefined()
-    expect(qrResult.dataUrl).toContain('data:image')
-    expect(qrResult.error).toBeNull()
+    expect(qrResult.data).toBeDefined()
+    expect(qrResult.format).toBe('svg')
+    expect(qrResult.url).toBeDefined()
   })
 
   /**
@@ -228,7 +229,7 @@ describe('Mobile Task Flow Integration Tests', () => {
     const { generateQRCode } = await import('@/lib/railway/qrcode')
 
     // Step 1: Create client and service
-    const client = createRailwayClient('test-api-key')
+    const client = createRailwayClient({ apiToken: 'test-api-key' })
     const lifecycleService = createLifecycleService(client)
 
     // Step 2: Provision container
@@ -242,7 +243,7 @@ describe('Mobile Task Flow Integration Tests', () => {
 
     // Step 4: Generate QR code
     const qrResult = await generateQRCode(provisionResult.metroUrl)
-    expect(qrResult.dataUrl).toContain('data:image')
+    expect(qrResult.data).toBeDefined()
 
     // Full flow successful
     expect(provisionResult.dbId).toBe('db-container-123')
@@ -255,7 +256,7 @@ describe('Mobile Task Flow Integration Tests', () => {
   it('should respond to health checks during monitoring', async () => {
     const { createRailwayClient } = await import('@/lib/railway/client')
 
-    const client = createRailwayClient('test-api-key')
+    const client = createRailwayClient({ apiToken: 'test-api-key' })
     const statusResult = await client.getContainerStatus('railway-mobile-xyz123')
 
     expect(statusResult.status).toBe('running')
@@ -268,7 +269,7 @@ describe('Mobile Task Flow Integration Tests', () => {
   it('should stream logs from Metro container', async () => {
     const { createRailwayClient } = await import('@/lib/railway/client')
 
-    const client = createRailwayClient('test-api-key')
+    const client = createRailwayClient({ apiToken: 'test-api-key' })
     const logsResult = await client.getContainerLogs('railway-mobile-xyz123')
 
     expect(logsResult.logs).toHaveLength(2)

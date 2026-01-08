@@ -140,7 +140,7 @@ describe('Platform Context Integration Tests', () => {
 
     it('should handle legacy tasks without platform field', () => {
       // Simulate legacy task from database (no platform field)
-      const legacyTask = { prompt: 'Fix the homepage' }
+      const legacyTask: { platform?: string | null; prompt: string } = { prompt: 'Fix the homepage' }
 
       // Extract platform (should default to web)
       const platform = extractPlatform(legacyTask)

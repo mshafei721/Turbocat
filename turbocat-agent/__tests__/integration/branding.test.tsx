@@ -74,7 +74,7 @@ describe('Branding Integration Tests', () => {
 
   describe('Integration Test 4: Vercel Component Removal', () => {
     it('should NOT render Vercel logo anywhere in header', () => {
-      const { container } = render(<HomePageHeader selectedOwner='test' selectedRepo='test' onOwnerChange={vi.fn()} onRepoChange={vi.fn()} user={{ id: '1', email: 'test@example.com' }} />)
+      const { container } = render(<HomePageHeader selectedOwner='test' selectedRepo='test' onOwnerChange={vi.fn()} onRepoChange={vi.fn()} user={{ id: '1', email: 'test@example.com', username: 'testuser', avatar: 'https://example.com/avatar.png' }} />)
       expect(container.innerHTML).not.toMatch(/vercel/i)
     })
     
