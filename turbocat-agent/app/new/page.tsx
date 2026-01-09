@@ -49,10 +49,10 @@ export default function NewProjectPage() {
         throw new Error('Failed to create project')
       }
 
-      const task = await response.json()
+      const data = await response.json()
 
       // Navigate to the project workspace
-      router.push(`/project/${task.id}`)
+      router.push(`/project/${data.task.id}`)
     } catch (error) {
       console.error('Error creating project:', error)
       setIsCreating(false)
