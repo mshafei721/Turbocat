@@ -1,14 +1,9 @@
-import { getServerSession } from '@/lib/session/get-server-session'
-import { TasksListClient } from '@/components/tasks-list-client'
 import { redirect } from 'next/navigation'
 
+/**
+ * Legacy tasks list page - redirects to new /dashboard route
+ * Kept for backward compatibility with existing links/bookmarks
+ */
 export default async function TasksListPage() {
-  const session = await getServerSession()
-
-  // Redirect to home if not authenticated
-  if (!session?.user) {
-    redirect('/')
-  }
-
-  return <TasksListClient user={session.user} authProvider={session.authProvider} />
+  redirect('/dashboard')
 }

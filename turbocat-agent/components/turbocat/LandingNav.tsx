@@ -65,7 +65,7 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
                   Dashboard
                 </Button>
               </Link>
-              <Link href="/dashboard" className="flex items-center gap-2">
+              <Link href="/profile" className="flex items-center gap-2">
                 {user.avatar ? (
                   <img
                     src={user.avatar}

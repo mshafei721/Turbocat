@@ -13,6 +13,7 @@ import {
   Copy,
   CaretDown,
   SignOut,
+  User,
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -189,6 +190,12 @@ export function DashboardSidebar({ user, className }: DashboardSidebarProps) {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User size={16} className="mr-2" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/settings">
                   <Gear size={16} className="mr-2" />

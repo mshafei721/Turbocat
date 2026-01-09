@@ -4,7 +4,7 @@ import { isRelativeUrl } from '@/lib/utils/is-relative-url'
 import { saveSession } from '@/lib/session/create'
 import { getOAuthToken } from '@/lib/session/get-oauth-token'
 
-export async function GET(req: NextRequest) {
+async function handleSignout(req: NextRequest) {
   const session = await getSessionFromReq(req)
   if (session) {
     // Check which provider the user authenticated with
@@ -51,4 +51,12 @@ export async function GET(req: NextRequest) {
 
   await saveSession(response, undefined)
   return response
+}
+
+export async function GET(req: NextRequest) {
+  return handleSignout(req)
+}
+
+export async function POST(req: NextRequest) {
+  return handleSignout(req)
 }

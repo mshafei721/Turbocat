@@ -22,6 +22,8 @@ export { AuthPage } from './AuthPage'
 // Dashboard Components
 export { DashboardSidebar } from './DashboardSidebar'
 export { DashboardPage } from './DashboardPage'
+export { ProfilePage } from './ProfilePage'
+export { SettingsPage } from './SettingsPage'
 
 // Workspace Components
 export { WorkspaceHeader } from './WorkspaceHeader'
@@ -49,6 +51,8 @@ export { default as LandingPageComponent } from './LandingPage'
 export { default as AuthPageComponent } from './AuthPage'
 export { default as DashboardSidebarComponent } from './DashboardSidebar'
 export { default as DashboardPageComponent } from './DashboardPage'
+export { default as ProfilePageComponent } from './ProfilePage'
+export { default as SettingsPageComponent } from './SettingsPage'
 export { default as WorkspaceHeaderComponent } from './WorkspaceHeader'
 export { default as WorkspaceChatComponent } from './WorkspaceChat'
 export { default as WorkspacePreviewComponent } from './WorkspacePreview'
