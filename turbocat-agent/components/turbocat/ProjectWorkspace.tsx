@@ -8,6 +8,7 @@ import { WorkspaceHeader } from './WorkspaceHeader'
 import { WorkspaceChat } from './WorkspaceChat'
 import { WorkspacePreview } from './WorkspacePreview'
 import { FileExplorer } from './FileExplorer'
+import { GitHubConnectModal } from './GitHubConnectModal'
 import { Button } from '@/components/ui/button'
 
 interface Task {
@@ -20,6 +21,7 @@ interface Task {
   sandboxUrl?: string | null
   sandboxId?: string | null
   previewUrl?: string | null
+  repoUrl?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -93,6 +95,20 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
   const [isSending, setIsSending] = React.useState(false)
   const [isExplorerOpen, setIsExplorerOpen] = React.useState(true)
   const [selectedFile, setSelectedFile] = React.useState<string | null>(null)
+  const [showGitHubModal, setShowGitHubModal] = React.useState(false)
+  const [gitHubModalDismissed, setGitHubModalDismissed] = React.useState(false)
+  const [prevTaskStatus, setPrevTaskStatus] = React.useState<string | null>(null)
+
+  // Show GitHub modal when task transitions to completed
+  React.useEffect(() => {
+    if (task && prevTaskStatus && prevTaskStatus !== 'completed' && task.status === 'completed' && !task.repoUrl && !gitHubModalDismissed) {
+      // Task just completed and no repo connected - show modal
+      setShowGitHubModal(true)
+    }
+    if (task) {
+      setPrevTaskStatus(task.status)
+    }
+  }, [task?.status, task?.repoUrl, prevTaskStatus, gitHubModalDismissed])
 
   // Fetch task and messages
   React.useEffect(() => {
@@ -339,6 +355,18 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
           />
         </div>
       </div>
+
+      {/* GitHub Connect Modal */}
+      <GitHubConnectModal
+        isOpen={showGitHubModal}
+        onClose={() => setShowGitHubModal(false)}
+        onSkip={() => {
+          setShowGitHubModal(false)
+          setGitHubModalDismissed(true)
+        }}
+        taskId={task.id}
+        projectName={projectName}
+      />
     </div>
   )
 }
