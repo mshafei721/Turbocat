@@ -2,11 +2,12 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Spinner, Warning } from '@phosphor-icons/react'
 import { WorkspaceHeader } from './WorkspaceHeader'
 import { WorkspaceChat } from './WorkspaceChat'
 import { WorkspacePreview } from './WorkspacePreview'
+import { FileExplorer } from './FileExplorer'
 import { Button } from '@/components/ui/button'
 
 interface Task {
@@ -17,6 +18,7 @@ interface Task {
   progress: number | null
   platform: 'web' | 'mobile'
   sandboxUrl?: string | null
+  sandboxId?: string | null
   previewUrl?: string | null
   createdAt: string
   updatedAt: string
@@ -89,6 +91,8 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [isSending, setIsSending] = React.useState(false)
+  const [isExplorerOpen, setIsExplorerOpen] = React.useState(true)
+  const [selectedFile, setSelectedFile] = React.useState<string | null>(null)
 
   // Fetch task and messages
   React.useEffect(() => {
@@ -212,6 +216,12 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
     }
   }
 
+  const handleFileSelect = (filename: string) => {
+    setSelectedFile(filename)
+    // TODO: Could show file content in a modal or panel
+    console.log('Selected file:', filename)
+  }
+
   // Loading state
   if (isLoading) {
     return (
@@ -252,6 +262,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
   const projectName = task.title || generateProjectName(task.prompt)
   const projectIcon = generateProjectIcon(task.prompt)
   const isProcessing = task.status === 'processing'
+  const hasSandbox = !!task.sandboxId
 
   return (
     <div className="flex h-screen flex-col bg-slate-950">
@@ -291,8 +302,20 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Chat */}
-        <div className="w-full border-r border-slate-800 md:w-1/2 lg:w-2/5">
+        {/* File Explorer (Collapsible) */}
+        <AnimatePresence>
+          {(hasSandbox || task.status === 'completed') && (
+            <FileExplorer
+              taskId={task.id}
+              isOpen={isExplorerOpen}
+              onToggle={() => setIsExplorerOpen(!isExplorerOpen)}
+              onFileSelect={handleFileSelect}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Chat Panel */}
+        <div className="flex-1 border-r border-slate-800 md:flex-none md:w-1/2 lg:w-2/5">
           <WorkspaceChat
             messages={messages}
             isLoading={isSending || isProcessing}
@@ -300,7 +323,7 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
           />
         </div>
 
-        {/* Right Panel - Preview */}
+        {/* Preview Panel */}
         <div className="hidden flex-1 md:block">
           <WorkspacePreview
             previewUrl={task.sandboxUrl || task.previewUrl || undefined}
