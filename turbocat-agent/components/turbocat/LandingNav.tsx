@@ -10,7 +10,7 @@ import { Logo } from './Logo'
 
 interface LandingNavProps {
   className?: string
-  user?: { id: string; email?: string } | null
+  user?: { id: string; email?: string; username?: string; avatar?: string; name?: string } | null
   onSignIn?: () => void
 }
 
@@ -59,9 +59,26 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
         {/* Desktop Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
-            <Link href="/dashboard">
-              <Button size="sm">Dashboard</Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/dashboard">
+                <Button size="sm" variant="ghost" className="text-slate-300">
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/dashboard" className="flex items-center gap-2">
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || user.username || 'User'}
+                    className="h-8 w-8 rounded-full border border-slate-700"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white">
+                    {(user.name || user.username || user.email || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+              </Link>
+            </div>
           ) : (
             <>
               <Button
@@ -112,9 +129,27 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
             ))}
             <div className="my-2 border-t border-slate-800" />
             {user ? (
-              <Link href="/dashboard">
-                <Button className="w-full">Dashboard</Button>
-              </Link>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 px-2 py-2">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name || user.username || 'User'}
+                      className="h-8 w-8 rounded-full border border-slate-700"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white">
+                      {(user.name || user.username || user.email || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-sm text-slate-300">
+                    {user.name || user.username || user.email}
+                  </span>
+                </div>
+                <Link href="/dashboard">
+                  <Button className="w-full">Dashboard</Button>
+                </Link>
+              </div>
             ) : (
               <>
                 <Button

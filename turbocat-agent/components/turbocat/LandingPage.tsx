@@ -14,7 +14,7 @@ import { getEnabledAuthProviders } from '@/lib/auth/providers'
 import { redirectToSignIn } from '@/lib/session/redirect-to-sign-in'
 
 interface LandingPageProps {
-  user?: { id: string; email?: string } | null
+  user?: { id: string; email?: string; username?: string; avatar?: string; name?: string } | null
   className?: string
 }
 

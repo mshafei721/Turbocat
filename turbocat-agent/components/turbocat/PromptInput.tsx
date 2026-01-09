@@ -22,15 +22,21 @@ interface PromptInputProps {
   onSubmit?: (prompt: string) => void
   placeholder?: string
   isLoading?: boolean
+  disabled?: boolean
   className?: string
   suggestions?: string[]
   maxLength?: number
+  /** Controlled value - if provided, component becomes controlled */
+  value?: string
+  /** Called when value changes in controlled mode */
+  onChange?: (value: string) => void
 }
 
 export function PromptInput({
   onSubmit,
   placeholder = 'Describe the app you want to build...',
   isLoading = false,
+  disabled = false,
   className,
   suggestions = [
     'A fitness tracking app with workout plans',
@@ -39,8 +45,17 @@ export function PromptInput({
     'A habit tracker with streaks',
   ],
   maxLength = 2000,
+  value: controlledValue,
+  onChange,
 }: PromptInputProps) {
-  const [prompt, setPrompt] = React.useState('')
+  const [internalPrompt, setInternalPrompt] = React.useState('')
+
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledValue !== undefined
+  const prompt = isControlled ? controlledValue : internalPrompt
+  const setPrompt = isControlled
+    ? (val: string) => onChange?.(val)
+    : setInternalPrompt
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
 
   // Auto-resize textarea
@@ -90,7 +105,7 @@ export function PromptInput({
                 'transition-all duration-200',
                 'hover:border-slate-600',
                 'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20',
-                isLoading && 'opacity-80 pointer-events-none'
+                (isLoading || disabled) && 'opacity-80 pointer-events-none'
               )}
             >
               {/* Textarea */}
@@ -101,7 +116,7 @@ export function PromptInput({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 maxLength={maxLength}
-                disabled={isLoading}
+                disabled={isLoading || disabled}
                 rows={1}
                 className={cn(
                   'w-full resize-none bg-transparent px-5 py-4 pr-32 text-base outline-none',
