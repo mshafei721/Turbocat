@@ -11,7 +11,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
 import { SkillsDashboard } from './skills-dashboard'
 import type { SkillDefinition } from '@/lib/skills/types'
 import type { MCPConnectionStatus } from '@/lib/mcp/types'
@@ -153,30 +152,21 @@ export function SkillsPageClient({ initialSkills, user, authProvider }: SkillsPa
    * Handle View SKILL.md
    */
   const handleViewSkillMd = (skillSlug: string) => {
-    // TODO: Navigate to skill details page or open modal when route is implemented
-    toast.info('Skill details coming soon', {
-      description: `View details for ${skillSlug}`,
-    })
+    router.push(`/skills/${skillSlug}`)
   }
 
   /**
    * Handle View Logs
    */
   const handleViewLogs = (skillSlug: string) => {
-    // TODO: Navigate to logs page with skill filter when route is implemented
-    toast.info('Skill logs coming soon', {
-      description: `View logs for ${skillSlug}`,
-    })
+    router.push(`/skills/${skillSlug}/logs`)
   }
 
   /**
    * Handle Add Skill
    */
   const handleAddSkill = () => {
-    // TODO: Navigate to add skill page when route is implemented
-    toast.info('Add skill coming soon', {
-      description: 'Create custom skills for your workspace',
-    })
+    router.push('/skills/new')
   }
 
   return (
