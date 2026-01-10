@@ -192,6 +192,31 @@ export interface SkillRegistryListOptions {
 }
 
 /**
+ * Skill Registry Interface
+ *
+ * Public interface for skill registry operations.
+ * Used for dependency injection and mocking in tests.
+ */
+export interface ISkillRegistry {
+  /** Register a new skill */
+  register(skill: SkillDefinition): Promise<string>
+  /** Update an existing skill */
+  update(slug: string, updates: Partial<SkillDefinition>): Promise<void>
+  /** Get a skill by slug */
+  get(slug: string): Promise<SkillDefinition | null>
+  /** List skills with optional filtering */
+  list(options?: SkillRegistryListOptions): Promise<SkillDefinition[]>
+  /** Deactivate a skill */
+  deactivate(slug: string): Promise<void>
+  /** Activate a skill */
+  activate(slug: string): Promise<void>
+  /** Increment usage count for a skill */
+  incrementUsage(skillId: string): Promise<void>
+  /** Update success rate for a skill */
+  updateSuccessRate(skillId: string, successRate: number): Promise<void>
+}
+
+/**
  * Skill Execution Log
  *
  * Database record for skill execution.

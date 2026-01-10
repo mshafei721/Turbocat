@@ -7,8 +7,7 @@
  * @file D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/detector.ts
  */
 
-import type { SkillRegistry } from './registry'
-import type { DetectionResult, SkillDefinition, SkillTrigger } from './types'
+import type { DetectionResult, ISkillRegistry, SkillDefinition, SkillTrigger } from './types'
 
 /**
  * SkillDetector class
@@ -17,10 +16,10 @@ import type { DetectionResult, SkillDefinition, SkillTrigger } from './types'
  * and similarity scoring.
  */
 export class SkillDetector {
-  private registry: SkillRegistry
+  private registry: ISkillRegistry
   private minConfidence: number = 0.6
 
-  constructor(registry: SkillRegistry) {
+  constructor(registry: ISkillRegistry) {
     this.registry = registry
   }
 

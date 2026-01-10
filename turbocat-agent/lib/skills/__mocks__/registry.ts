@@ -8,14 +8,15 @@
  */
 
 import { nanoid } from 'nanoid'
-import type { SkillDefinition, SkillRegistryListOptions } from '../types'
+import type { ISkillRegistry, SkillDefinition, SkillRegistryListOptions } from '../types'
 
 /**
  * MockSkillRegistry class
  *
  * In-memory skill registry for testing without database.
+ * Implements ISkillRegistry interface for type compatibility.
  */
-export class MockSkillRegistry {
+export class MockSkillRegistry implements ISkillRegistry {
   private skills: Map<string, SkillDefinition> = new Map()
 
   /**
