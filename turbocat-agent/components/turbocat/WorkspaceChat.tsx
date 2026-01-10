@@ -7,9 +7,19 @@ import {
   User,
   PaperPlaneRight,
   Spinner,
+  ImageSquare,
+  Microphone,
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { ModelSelector } from './ModelSelector'
+import { FeatureToolbar } from './FeatureToolbar'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ChatMessage {
   id: string
@@ -23,6 +33,10 @@ interface WorkspaceChatProps {
   messages: ChatMessage[]
   isLoading?: boolean
   onSendMessage?: (message: string) => void
+  onModelChange?: (modelId: string) => void
+  onFeatureClick?: (featureId: string) => void
+  selectedModel?: string
+  activeFeatures?: string[]
   className?: string
 }
 
@@ -30,21 +44,47 @@ export function WorkspaceChat({
   messages,
   isLoading = false,
   onSendMessage,
+  onModelChange,
+  onFeatureClick,
+  selectedModel,
+  activeFeatures = [],
   className,
 }: WorkspaceChatProps) {
   const [input, setInput] = React.useState('')
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea
+  React.useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = 'auto'
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`
+    }
+  }, [input])
 
   // Auto-scroll to bottom when new messages arrive
   React.useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (input.trim() && !isLoading) {
       onSendMessage?.(input.trim())
       setInput('')
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+      }
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Submit on Enter without Shift
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit()
     }
   }
 
@@ -93,26 +133,102 @@ export function WorkspaceChat({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-slate-800 p-4">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask anything or give instructions..."
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-foreground placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!input.trim() || isLoading}
-            className="shrink-0"
-          >
-            <PaperPlaneRight size={18} weight="fill" />
-          </Button>
-        </form>
-      </div>
+      <TooltipProvider>
+        <div className="border-t border-slate-800 p-4 space-y-3">
+          {/* Model Selector & Feature Toolbar */}
+          <div className="flex items-center justify-between gap-2">
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={onModelChange}
+              disabled={isLoading}
+            />
+            <FeatureToolbar
+              activeFeatures={activeFeatures}
+              onFeatureClick={onFeatureClick}
+              disabled={isLoading}
+              variant="compact"
+            />
+          </div>
+
+          {/* Input Form */}
+          <form onSubmit={handleSubmit}>
+            <div className="relative rounded-xl border border-slate-700 bg-slate-900/80 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask anything or give instructions..."
+                rows={1}
+                disabled={isLoading}
+                className={cn(
+                  'w-full resize-none bg-transparent px-4 py-3 pr-24 text-sm outline-none',
+                  'placeholder:text-slate-500',
+                  'disabled:cursor-not-allowed',
+                  'min-h-[44px] max-h-[150px]'
+                )}
+              />
+
+              {/* Action Buttons */}
+              <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                {/* Image Upload */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-slate-400 hover:text-slate-200"
+                      disabled={isLoading}
+                    >
+                      <ImageSquare size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Attach image</TooltipContent>
+                </Tooltip>
+
+                {/* Voice Input */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-slate-400 hover:text-slate-200"
+                      disabled={isLoading}
+                    >
+                      <Microphone size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Voice input</TooltipContent>
+                </Tooltip>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  size="icon"
+                  className={cn(
+                    'h-8 w-8 rounded-lg',
+                    !input.trim() && 'opacity-50 cursor-not-allowed'
+                  )}
+                  disabled={!input.trim() || isLoading}
+                >
+                  {isLoading ? (
+                    <Spinner size={16} className="animate-spin" />
+                  ) : (
+                    <PaperPlaneRight size={16} weight="fill" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </form>
+
+          {/* Hint */}
+          <p className="text-xs text-slate-500 text-center">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">Shift + Enter</kbd> for new line
+          </p>
+        </div>
+      </TooltipProvider>
     </div>
   )
 }

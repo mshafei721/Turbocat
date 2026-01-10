@@ -19,11 +19,12 @@ interface LandingFooterProps {
   className?: string
 }
 
+// Footer links - only include working routes
 const footerLinks = {
   product: {
-    title: 'Vibecode',
+    title: 'Turbocat',
     links: [
-      { href: '/blog', label: 'Blog' },
+      { href: '/new', label: 'Create App' },
     ],
   },
   account: {
@@ -31,22 +32,7 @@ const footerLinks = {
     links: [
       { href: '/dashboard', label: 'My projects' },
       { href: '/profile', label: 'Profile' },
-      { href: '/referrals', label: 'Referrals' },
       { href: '/settings', label: 'Settings' },
-    ],
-  },
-  resources: {
-    title: 'Resources',
-    links: [
-      { href: '/faqs', label: 'FAQ' },
-      { href: '/docs', label: 'Docs' },
-    ],
-  },
-  pricing: {
-    title: 'Product',
-    links: [
-      { href: '/pricing', label: 'Pricing' },
-      { href: '/docs', label: 'Docs' },
     ],
   },
   community: {
@@ -54,9 +40,7 @@ const footerLinks = {
     links: [
       { href: 'https://discord.gg/turbocat', label: 'Discord', external: true },
       { href: 'https://twitter.com/turbocat', label: 'X / Twitter', external: true },
-      { href: 'https://instagram.com/turbocat', label: 'Instagram', external: true },
-      { href: 'https://linkedin.com/company/turbocat', label: 'LinkedIn', external: true },
-      { href: 'https://youtube.com/@turbocat', label: 'YouTube', external: true },
+      { href: 'https://github.com/turbocat', label: 'GitHub', external: true },
     ],
   },
 }
@@ -126,12 +110,6 @@ export function LandingFooter({ className }: LandingFooterProps) {
 
         {/* Bottom Section */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 sm:flex-row">
-          <p className="text-sm text-slate-500">
-            <Link href="/terms" className="hover:text-slate-300">
-              Terms of service
-            </Link>
-          </p>
-
           <p className="text-sm text-slate-500">
             All rights reserved &copy; {new Date().getFullYear()} Turbocat, Inc.
           </p>

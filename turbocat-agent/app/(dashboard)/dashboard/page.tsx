@@ -66,10 +66,5 @@ export default async function DashboardRoute() {
     url: task.sandboxUrl || task.previewUrl || undefined,
   }))
 
-  return (
-    <DashboardPage
-      user={session?.user ?? null}
-      projects={projects}
-    />
-  )
+  return <DashboardPage projects={projects} />
 }

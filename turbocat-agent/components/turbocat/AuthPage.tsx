@@ -237,6 +237,7 @@ export function AuthPage({ mode = 'login', className }: AuthPageProps) {
               </button>
             </div>
 
+            {/* TODO: Add forgot-password route when email auth is implemented
             {isLogin && (
               <div className="text-right">
                 <Link
@@ -247,6 +248,7 @@ export function AuthPage({ mode = 'login', className }: AuthPageProps) {
                 </Link>
               </div>
             )}
+            */}
 
             <Button
               type="submit"

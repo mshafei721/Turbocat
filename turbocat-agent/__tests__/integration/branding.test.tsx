@@ -53,22 +53,22 @@ describe('Branding Integration Tests', () => {
   })
 
   describe('Integration Test 3: Metadata Branding', () => {
-    it('should have Turbocat as main page title', () => {
-      expect(metadata.title).toBe('Turbocat')
+    it('should have Turbocat in main page title', () => {
+      expect(metadata.title).toBe('Turbocat - Build apps with AI')
     })
-    
+
     it('should have Turbocat in description', () => {
-      expect(metadata.description).toContain('Multi-agent AI coding platform')
+      expect(metadata.description).toContain('Create native web and mobile apps')
     })
-    
+
     it('should have Turbocat in OpenGraph metadata', () => {
-      expect(metadata.openGraph?.title).toBe('Turbocat')
-      expect(metadata.openGraph?.description).toContain('Multi-agent AI coding platform')
+      expect(metadata.openGraph?.title).toBe('Turbocat - Build apps with AI')
+      expect(metadata.openGraph?.description).toContain('Create native web and mobile apps')
     })
-    
+
     it('should have Turbocat in Twitter metadata', () => {
-      expect(metadata.twitter?.title).toBe('Turbocat')
-      expect(metadata.twitter?.description).toContain('Multi-agent AI coding platform')
+      expect(metadata.twitter?.title).toBe('Turbocat - Build apps with AI')
+      expect(metadata.twitter?.description).toContain('Create native web and mobile apps')
     })
   })
 

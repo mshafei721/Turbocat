@@ -14,12 +14,13 @@ interface LandingNavProps {
   onSignIn?: () => void
 }
 
-const navLinks = [
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/community', label: 'Community' },
-  { href: '/faqs', label: 'FAQs' },
-  { href: '/docs', label: 'Docs' },
+// Navigation links - add back when pages are implemented
+const navLinks: { href: string; label: string }[] = [
+  // { href: '/pricing', label: 'Pricing' },
+  // { href: '/blog', label: 'Blog' },
+  // { href: '/community', label: 'Community' },
+  // { href: '/faqs', label: 'FAQs' },
+  // { href: '/docs', label: 'Docs' },
 ]
 
 export function LandingNav({ className, user, onSignIn }: LandingNavProps) {

@@ -3,11 +3,9 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, User, Envelope, SignOut, Gear, Camera } from '@phosphor-icons/react'
-import { cn } from '@/lib/utils'
+import { User, Envelope, SignOut, Gear, Camera } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Logo } from './Logo'
 
 interface ProfilePageProps {
   user: {
@@ -37,26 +35,7 @@ export function ProfilePage({ user, authProvider }: ProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
-      <header className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-lg">
-        <div className="mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push('/dashboard')}
-              className="text-slate-400 hover:text-white"
-            >
-              <ArrowLeft size={20} />
-            </Button>
-            <Logo size="md" />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-2xl px-6 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -193,7 +172,6 @@ export function ProfilePage({ user, authProvider }: ProfilePageProps) {
             </Button>
           </div>
         </motion.div>
-      </main>
     </div>
   )
 }

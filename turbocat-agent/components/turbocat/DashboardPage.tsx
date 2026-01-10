@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass,
@@ -9,6 +10,7 @@ import {
   List,
   CaretDown,
   FunnelSimple,
+  Spinner,
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -19,7 +21,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { DashboardSidebar } from './DashboardSidebar'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { ProjectCard } from './ProjectCard'
 import { NoProjectsEmptyState } from './EmptyState'
 import Link from 'next/link'
@@ -36,20 +47,19 @@ interface Project {
 }
 
 interface DashboardPageProps {
-  user?: {
-    id: string
-    email?: string
-    username?: string
-    avatar?: string
-  } | null
   projects?: Project[]
   className?: string
 }
 
-export function DashboardPage({ user, projects = [], className }: DashboardPageProps) {
+export function DashboardPage({ projects = [], className }: DashboardPageProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = React.useState('')
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid')
   const [filterPlatform, setFilterPlatform] = React.useState<'all' | 'web' | 'mobile'>('all')
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [projectToDelete, setProjectToDelete] = React.useState<Project | null>(null)
+  const [isDeleting, setIsDeleting] = React.useState(false)
+  const [isDuplicating, setIsDuplicating] = React.useState<string | null>(null)
 
   // Filter projects based on search and platform
   const filteredProjects = React.useMemo(() => {
@@ -67,23 +77,68 @@ export function DashboardPage({ user, projects = [], className }: DashboardPageP
   }, [projects, searchQuery, filterPlatform])
 
   const handleDeleteProject = (id: string) => {
-    // Implement delete logic
-    console.log('Delete project:', id)
+    const project = projects.find(p => p.id === id)
+    if (project) {
+      setProjectToDelete(project)
+      setDeleteDialogOpen(true)
+    }
   }
 
-  const handleDuplicateProject = (id: string) => {
-    // Implement duplicate logic
-    console.log('Duplicate project:', id)
+  const confirmDelete = async () => {
+    if (!projectToDelete) return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/tasks/${projectToDelete.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project')
+      }
+
+      // Refresh the page to show updated list
+      router.refresh()
+    } catch (error) {
+      console.error('Error deleting project:', error)
+    } finally {
+      setIsDeleting(false)
+      setDeleteDialogOpen(false)
+      setProjectToDelete(null)
+    }
+  }
+
+  const handleDuplicateProject = async (id: string) => {
+    const project = projects.find(p => p.id === id)
+    if (!project) return
+
+    setIsDuplicating(id)
+    try {
+      // Create a new task with the same prompt
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: project.description || `Duplicate of ${project.name}`,
+          platform: project.platform,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to duplicate project')
+      }
+
+      const data = await response.json()
+      // Navigate to the new project
+      router.push(`/project/${data.task.id}`)
+    } catch (error) {
+      console.error('Error duplicating project:', error)
+      setIsDuplicating(null)
+    }
   }
 
   return (
-    <div className={cn('flex min-h-screen bg-slate-950', className)}>
-      {/* Sidebar */}
-      <DashboardSidebar user={user} />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-6xl px-6 py-8">
+    <div className={cn('mx-auto max-w-6xl px-6 py-8', className)}>
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -238,8 +293,40 @@ export function DashboardPage({ user, projects = [], className }: DashboardPageP
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-      </main>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent className="border-slate-800 bg-slate-900">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-white">Delete Project</AlertDialogTitle>
+                <AlertDialogDescription className="text-slate-400">
+                  Are you sure you want to delete "{projectToDelete?.name}"? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel
+                  className="border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Spinner size={16} className="mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete'
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
     </div>
   )
 }

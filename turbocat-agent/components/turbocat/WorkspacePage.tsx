@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils'
 import { WorkspaceHeader } from './WorkspaceHeader'
 import { WorkspaceChat } from './WorkspaceChat'
 import { WorkspacePreview } from './WorkspacePreview'
+import { PublishModal } from './PublishModal'
+import { ShareModal } from './ShareModal'
 
 interface ChatMessage {
   id: string
@@ -39,6 +41,8 @@ export function WorkspacePage({
 }: WorkspacePageProps) {
   const [chatMessages, setChatMessages] = React.useState<ChatMessage[]>(messages)
   const [isLoading, setIsLoading] = React.useState(isGenerating)
+  const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
 
   const handleSendMessage = async (content: string) => {
     // Add user message
@@ -71,13 +75,11 @@ export function WorkspacePage({
   }
 
   const handleShare = () => {
-    // Implement share logic
-    console.log('Share project')
+    setIsShareModalOpen(true)
   }
 
   const handlePublish = () => {
-    // Implement publish logic
-    console.log('Publish project')
+    setIsPublishModalOpen(true)
   }
 
   const handleRefreshPreview = () => {
@@ -127,6 +129,25 @@ export function WorkspacePage({
           />
         </div>
       </div>
+
+      {/* Publish Modal */}
+      <PublishModal
+        isOpen={isPublishModalOpen}
+        onClose={() => setIsPublishModalOpen(false)}
+        projectId={project.id}
+        projectName={project.name}
+        platform={project.platform}
+        existingUrl={project.previewUrl}
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        projectId={project.id}
+        projectName={project.name}
+        projectUrl={project.previewUrl}
+      />
     </div>
   )
 }

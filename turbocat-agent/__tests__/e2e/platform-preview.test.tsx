@@ -55,7 +55,7 @@ vi.mock('@/components/task-details', () => ({
     <div data-testid="task-details">
       <h1>{task.title}</h1>
       <p>{task.platform}</p>
-      {task.platform === 'web' && (
+      {task.platform === 'web' && task.sandboxUrl && (
         <iframe
           data-testid="vercel-sandbox"
           src={task.sandboxUrl}
