@@ -103,7 +103,7 @@ export function WorkspaceHeader({
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href={`/project/${projectId}/settings`}>Project settings</Link>
+              <Link href="/settings">Settings</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
