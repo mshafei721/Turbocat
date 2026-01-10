@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { User, Envelope, SignOut, Gear, Camera } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import type { AuthProvider } from '@/lib/session/types'
 
 interface ProfilePageProps {
   user: {
@@ -15,7 +16,7 @@ interface ProfilePageProps {
     avatar?: string
     name?: string
   }
-  authProvider?: 'github' | 'vercel' | null
+  authProvider?: AuthProvider | null
 }
 
 export function ProfilePage({ user, authProvider }: ProfilePageProps) {

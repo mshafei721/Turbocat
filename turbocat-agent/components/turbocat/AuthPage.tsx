@@ -33,7 +33,7 @@ export function AuthPage({ mode = 'login', className }: AuthPageProps) {
   const [isLoading, setIsLoading] = React.useState(false)
   const [loadingProvider, setLoadingProvider] = React.useState<string | null>(null)
 
-  const { github: hasGitHub, vercel: hasVercel } = getEnabledAuthProviders()
+  const { github: hasGitHub, vercel: hasVercel, google: hasGoogle, apple: hasApple } = getEnabledAuthProviders()
 
   const isLogin = mode === 'login'
 
@@ -49,12 +49,12 @@ export function AuthPage({ mode = 'login', className }: AuthPageProps) {
 
   const handleGoogleSignIn = () => {
     setLoadingProvider('google')
-    // Implement Google sign in
+    window.location.href = '/api/auth/signin/google'
   }
 
   const handleAppleSignIn = () => {
     setLoadingProvider('apple')
-    // Implement Apple sign in
+    window.location.href = '/api/auth/signin/apple'
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,37 +109,41 @@ export function AuthPage({ mode = 'login', className }: AuthPageProps) {
             transition={{ duration: 0.3, delay: 0.3 }}
             className="space-y-3"
           >
-            {/* Google */}
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full gap-3 border-slate-700 bg-slate-800/50 hover:bg-slate-800"
-              onClick={handleGoogleSignIn}
-              disabled={loadingProvider !== null}
-            >
-              {loadingProvider === 'google' ? (
-                <LoadingSpinner />
-              ) : (
-                <GoogleLogo size={20} weight="bold" className="text-foreground" />
-              )}
-              Continue with Google
-            </Button>
+            {/* Google (if enabled) */}
+            {hasGoogle && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full gap-3 border-slate-700 bg-slate-800/50 hover:bg-slate-800"
+                onClick={handleGoogleSignIn}
+                disabled={loadingProvider !== null}
+              >
+                {loadingProvider === 'google' ? (
+                  <LoadingSpinner />
+                ) : (
+                  <GoogleLogo size={20} weight="bold" className="text-foreground" />
+                )}
+                Continue with Google
+              </Button>
+            )}
 
-            {/* Apple */}
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full gap-3 border-slate-700 bg-slate-800/50 hover:bg-slate-800"
-              onClick={handleAppleSignIn}
-              disabled={loadingProvider !== null}
-            >
-              {loadingProvider === 'apple' ? (
-                <LoadingSpinner />
-              ) : (
-                <AppleLogo size={20} weight="fill" className="text-foreground" />
-              )}
-              Continue with Apple
-            </Button>
+            {/* Apple (if enabled) */}
+            {hasApple && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full gap-3 border-slate-700 bg-slate-800/50 hover:bg-slate-800"
+                onClick={handleAppleSignIn}
+                disabled={loadingProvider !== null}
+              >
+                {loadingProvider === 'apple' ? (
+                  <LoadingSpinner />
+                ) : (
+                  <AppleLogo size={20} weight="fill" className="text-foreground" />
+                )}
+                Continue with Apple
+              </Button>
+            )}
 
             {/* GitHub (if enabled) */}
             {hasGitHub && (

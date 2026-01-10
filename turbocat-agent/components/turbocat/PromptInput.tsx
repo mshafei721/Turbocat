@@ -8,6 +8,7 @@ import {
   ImageSquare,
   Sparkle,
   Spinner,
+  MicrophoneSlash,
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -17,9 +18,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useAttachments, type Attachment } from '@/lib/hooks/use-attachments'
+import { AttachmentPreview } from './AttachmentPreview'
 
 interface PromptInputProps {
-  onSubmit?: (prompt: string) => void
+  onSubmit?: (prompt: string, attachments?: Attachment[]) => void
   placeholder?: string
   isLoading?: boolean
   disabled?: boolean
@@ -30,6 +33,10 @@ interface PromptInputProps {
   value?: string
   /** Called when value changes in controlled mode */
   onChange?: (value: string) => void
+  /** Enable voice input */
+  enableVoice?: boolean
+  /** Enable image attachment */
+  enableImages?: boolean
 }
 
 export function PromptInput({
@@ -47,8 +54,11 @@ export function PromptInput({
   maxLength = 2000,
   value: controlledValue,
   onChange,
+  enableVoice = true,
+  enableImages = true,
 }: PromptInputProps) {
   const [internalPrompt, setInternalPrompt] = React.useState('')
+  const [isRecording, setIsRecording] = React.useState(false)
 
   // Support both controlled and uncontrolled modes
   const isControlled = controlledValue !== undefined
@@ -57,6 +67,22 @@ export function PromptInput({
     ? (val: string) => onChange?.(val)
     : setInternalPrompt
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+
+  // Attachment handling
+  const {
+    attachments,
+    fileInputRef,
+    openFilePicker,
+    handleFileInputChange,
+    removeAttachment,
+    clearAttachments,
+    acceptedTypesString,
+    hasAttachments,
+  } = useAttachments({
+    maxFiles: 5,
+    maxFileSize: 10 * 1024 * 1024,
+    acceptedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  })
 
   // Auto-resize textarea
   React.useEffect(() => {
@@ -70,8 +96,16 @@ export function PromptInput({
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault()
     if (prompt.trim() && !isLoading) {
-      onSubmit?.(prompt.trim())
+      onSubmit?.(prompt.trim(), hasAttachments ? attachments : undefined)
+      clearAttachments()
     }
+  }
+
+  const handleVoiceToggle = () => {
+    if (!enableVoice) return
+    setIsRecording((prev) => !prev)
+    // Voice recording implementation would go here
+    // For now, this is a placeholder that toggles the state
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -136,36 +170,54 @@ export function PromptInput({
                 )}
 
                 {/* Image Upload */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-slate-200"
-                      disabled={isLoading}
-                    >
-                      <ImageSquare size={18} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Attach image</TooltipContent>
-                </Tooltip>
+                {enableImages && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          'h-8 w-8 text-slate-400 hover:text-slate-200',
+                          hasAttachments && 'text-primary'
+                        )}
+                        disabled={isLoading}
+                        onClick={openFilePicker}
+                      >
+                        <ImageSquare size={18} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Attach image</TooltipContent>
+                  </Tooltip>
+                )}
 
                 {/* Voice Input */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-slate-200"
-                      disabled={isLoading}
-                    >
-                      <Microphone size={18} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Voice input</TooltipContent>
-                </Tooltip>
+                {enableVoice && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          'h-8 w-8 text-slate-400 hover:text-slate-200',
+                          isRecording && 'text-red-500 bg-red-500/10'
+                        )}
+                        disabled={isLoading}
+                        onClick={handleVoiceToggle}
+                      >
+                        {isRecording ? (
+                          <MicrophoneSlash size={18} />
+                        ) : (
+                          <Microphone size={18} />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {isRecording ? 'Stop recording' : 'Voice input'}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
 
                 {/* Submit Button */}
                 <Button
@@ -185,6 +237,28 @@ export function PromptInput({
                 </Button>
               </div>
             </div>
+
+            {/* Hidden file input */}
+            {enableImages && (
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={acceptedTypesString}
+                multiple
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
+            )}
+
+            {/* Attachment preview */}
+            {hasAttachments && (
+              <div className="px-4 pb-3">
+                <AttachmentPreview
+                  attachments={attachments}
+                  onRemove={removeAttachment}
+                />
+              </div>
+            )}
           </form>
 
           {/* AI Badge */}

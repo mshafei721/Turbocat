@@ -17,7 +17,7 @@ export const users = pgTable(
     id: text('id').primaryKey(), // Internal user ID (we generate this)
     // Primary OAuth account info (how they signed in)
     provider: text('provider', {
-      enum: ['github', 'vercel'],
+      enum: ['github', 'vercel', 'google', 'apple'],
     }).notNull(), // Primary auth provider
     externalId: text('external_id').notNull(), // External ID from OAuth provider
     accessToken: text('access_token').notNull(), // Encrypted OAuth access token
@@ -40,7 +40,7 @@ export const users = pgTable(
 
 export const insertUserSchema = z.object({
   id: z.string().optional(), // Auto-generated if not provided
-  provider: z.enum(['github', 'vercel']),
+  provider: z.enum(['github', 'vercel', 'google', 'apple']),
   externalId: z.string().min(1, 'External ID is required'),
   accessToken: z.string(),
   refreshToken: z.string().optional(),
@@ -56,7 +56,7 @@ export const insertUserSchema = z.object({
 
 export const selectUserSchema = z.object({
   id: z.string(),
-  provider: z.enum(['github', 'vercel']),
+  provider: z.enum(['github', 'vercel', 'google', 'apple']),
   externalId: z.string(),
   accessToken: z.string(),
   refreshToken: z.string().nullable(),
@@ -513,6 +513,266 @@ export type InsertRailwayContainer = z.infer<typeof insertRailwayContainerSchema
 export const userConnections = accounts
 export type UserConnection = Account
 export type InsertUserConnection = InsertAccount
+
+// ============================================================================
+// Phase 3: Credits System
+// ============================================================================
+
+// Credits table - user credit balance
+export const credits = pgTable('credits', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  balance: integer('balance').notNull().default(0), // Current credit balance
+  totalEarned: integer('total_earned').notNull().default(0), // Lifetime credits earned
+  totalSpent: integer('total_spent').notNull().default(0), // Lifetime credits spent
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const insertCreditSchema = z.object({
+  id: z.string(),
+  userId: z.string().min(1, 'User ID is required'),
+  balance: z.number().int().default(0),
+  totalEarned: z.number().int().default(0),
+  totalSpent: z.number().int().default(0),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+})
+
+export const selectCreditSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  balance: z.number(),
+  totalEarned: z.number(),
+  totalSpent: z.number(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+})
+
+export type Credit = z.infer<typeof selectCreditSchema>
+export type InsertCredit = z.infer<typeof insertCreditSchema>
+
+// Credit transactions table - history of credit changes
+export const creditTransactions = pgTable('credit_transactions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(), // Positive for credits earned, negative for spent
+  type: text('type', {
+    enum: ['purchase', 'referral_bonus', 'promo_code', 'usage', 'refund', 'adjustment'],
+  }).notNull(),
+  description: text('description'), // Human-readable description
+  referenceId: text('reference_id'), // ID of related entity (e.g., referral ID, promo code ID)
+  referenceType: text('reference_type', {
+    enum: ['referral', 'promo_code', 'task', 'subscription'],
+  }),
+  balanceAfter: integer('balance_after').notNull(), // Balance after this transaction
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const insertCreditTransactionSchema = z.object({
+  id: z.string(),
+  userId: z.string().min(1, 'User ID is required'),
+  amount: z.number().int(),
+  type: z.enum(['purchase', 'referral_bonus', 'promo_code', 'usage', 'refund', 'adjustment']),
+  description: z.string().optional(),
+  referenceId: z.string().optional(),
+  referenceType: z.enum(['referral', 'promo_code', 'task', 'subscription']).optional(),
+  balanceAfter: z.number().int(),
+  createdAt: z.date().optional(),
+})
+
+export const selectCreditTransactionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  amount: z.number(),
+  type: z.enum(['purchase', 'referral_bonus', 'promo_code', 'usage', 'refund', 'adjustment']),
+  description: z.string().nullable(),
+  referenceId: z.string().nullable(),
+  referenceType: z.enum(['referral', 'promo_code', 'task', 'subscription']).nullable(),
+  balanceAfter: z.number(),
+  createdAt: z.date(),
+})
+
+export type CreditTransaction = z.infer<typeof selectCreditTransactionSchema>
+export type InsertCreditTransaction = z.infer<typeof insertCreditTransactionSchema>
+
+// ============================================================================
+// Phase 3: Referral System
+// ============================================================================
+
+// Referrals table - tracks referral relationships and rewards
+export const referrals = pgTable('referrals', {
+  id: text('id').primaryKey(),
+  referrerId: text('referrer_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }), // User who made the referral
+  refereeId: text('referee_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }), // User who was referred
+  referralCode: text('referral_code').notNull(), // The code used
+  status: text('status', {
+    enum: ['pending', 'completed', 'expired', 'cancelled'],
+  })
+    .notNull()
+    .default('pending'),
+  creditsEarned: integer('credits_earned').default(0), // Credits awarded to referrer
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'), // When the referee completed qualifying action
+})
+
+export const insertReferralSchema = z.object({
+  id: z.string(),
+  referrerId: z.string().min(1, 'Referrer ID is required'),
+  refereeId: z.string().min(1, 'Referee ID is required'),
+  referralCode: z.string().min(1, 'Referral code is required'),
+  status: z.enum(['pending', 'completed', 'expired', 'cancelled']).default('pending'),
+  creditsEarned: z.number().int().default(0),
+  createdAt: z.date().optional(),
+  completedAt: z.date().optional(),
+})
+
+export const selectReferralSchema = z.object({
+  id: z.string(),
+  referrerId: z.string(),
+  refereeId: z.string(),
+  referralCode: z.string(),
+  status: z.enum(['pending', 'completed', 'expired', 'cancelled']),
+  creditsEarned: z.number().nullable(),
+  createdAt: z.date(),
+  completedAt: z.date().nullable(),
+})
+
+export type Referral = z.infer<typeof selectReferralSchema>
+export type InsertReferral = z.infer<typeof insertReferralSchema>
+
+// User referral codes table - each user's unique referral code
+export const referralCodes = pgTable('referral_codes', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  code: text('code').notNull().unique(), // Unique referral code
+  totalReferrals: integer('total_referrals').notNull().default(0),
+  totalCreditsEarned: integer('total_credits_earned').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const insertReferralCodeSchema = z.object({
+  id: z.string(),
+  userId: z.string().min(1, 'User ID is required'),
+  code: z.string().min(1, 'Code is required'),
+  totalReferrals: z.number().int().default(0),
+  totalCreditsEarned: z.number().int().default(0),
+  createdAt: z.date().optional(),
+})
+
+export const selectReferralCodeSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  code: z.string(),
+  totalReferrals: z.number(),
+  totalCreditsEarned: z.number(),
+  createdAt: z.date(),
+})
+
+export type ReferralCode = z.infer<typeof selectReferralCodeSchema>
+export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>
+
+// ============================================================================
+// Phase 3: Promo Code System
+// ============================================================================
+
+// Promo codes table - promotional code definitions
+export const promoCodes = pgTable('promo_codes', {
+  id: text('id').primaryKey(),
+  code: text('code').notNull().unique(), // The promo code string
+  description: text('description'),
+  creditsReward: integer('credits_reward').notNull(), // Credits given when redeemed
+  maxUses: integer('max_uses'), // Null = unlimited
+  currentUses: integer('current_uses').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  startsAt: timestamp('starts_at'), // Null = immediately active
+  expiresAt: timestamp('expires_at'), // Null = never expires
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const insertPromoCodeSchema = z.object({
+  id: z.string(),
+  code: z.string().min(1, 'Code is required'),
+  description: z.string().optional(),
+  creditsReward: z.number().int().positive('Credits reward must be positive'),
+  maxUses: z.number().int().positive().optional(),
+  currentUses: z.number().int().default(0),
+  isActive: z.boolean().default(true),
+  startsAt: z.date().optional(),
+  expiresAt: z.date().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+})
+
+export const selectPromoCodeSchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  description: z.string().nullable(),
+  creditsReward: z.number(),
+  maxUses: z.number().nullable(),
+  currentUses: z.number(),
+  isActive: z.boolean(),
+  startsAt: z.date().nullable(),
+  expiresAt: z.date().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+})
+
+export type PromoCode = z.infer<typeof selectPromoCodeSchema>
+export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>
+
+// Promo code redemptions table - tracks who redeemed what
+export const promoCodeRedemptions = pgTable(
+  'promo_code_redemptions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    promoCodeId: text('promo_code_id')
+      .notNull()
+      .references(() => promoCodes.id, { onDelete: 'cascade' }),
+    creditsAwarded: integer('credits_awarded').notNull(),
+    redeemedAt: timestamp('redeemed_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    // Each user can only redeem a promo code once
+    userPromoCodeUnique: uniqueIndex('promo_redemptions_user_promo_idx').on(table.userId, table.promoCodeId),
+  }),
+)
+
+export const insertPromoCodeRedemptionSchema = z.object({
+  id: z.string(),
+  userId: z.string().min(1, 'User ID is required'),
+  promoCodeId: z.string().min(1, 'Promo code ID is required'),
+  creditsAwarded: z.number().int(),
+  redeemedAt: z.date().optional(),
+})
+
+export const selectPromoCodeRedemptionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  promoCodeId: z.string(),
+  creditsAwarded: z.number(),
+  redeemedAt: z.date(),
+})
+
+export type PromoCodeRedemption = z.infer<typeof selectPromoCodeRedemptionSchema>
+export type InsertPromoCodeRedemption = z.infer<typeof insertPromoCodeRedemptionSchema>
 
 // Export skills schema
 export * from './schema/skills'
