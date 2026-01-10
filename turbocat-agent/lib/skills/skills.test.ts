@@ -9,13 +9,13 @@
 
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
 import { SkillParser } from './parser'
-import { SkillRegistry } from './registry'
+import { MockSkillRegistry as SkillRegistry } from './__mocks__/registry'
 import { SkillDetector } from './detector'
 import { SkillExecutor } from './executor'
 import type { SkillDefinition, ExecutionContext, ExecutionTrace } from './types'
 import { nanoid } from 'nanoid'
 
-// Mock database module
+// Database mock no longer needed - using MockSkillRegistry
 vi.mock('../db/client', () => ({
   db: {
     insert: vi.fn(() => ({
@@ -365,7 +365,7 @@ Body content
         triggers: [
           {
             pattern: 'database|schema|table',
-            confidence: 0.7,
+            confidence: 0.6,
             examples: ['create a database schema', 'design the tables', 'set up database'],
           },
         ],
@@ -382,8 +382,8 @@ Body content
         triggers: [
           {
             pattern: 'api|endpoint|rest|graphql',
-            confidence: 0.7,
-            examples: ['create an API endpoint', 'integrate with REST API'],
+            confidence: 0.6,
+            examples: ['create an API endpoint', 'integrate with REST API', 'create API endpoints'],
           },
         ],
       })

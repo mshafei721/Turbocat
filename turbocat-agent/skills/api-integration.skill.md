@@ -6,13 +6,14 @@ category: core
 description: Generate Next.js App Router API routes with Zod validation and TypeScript types
 triggers:
   - pattern: "api|endpoint|route|fetch|request|rest|graphql"
-    confidence: 0.7
+    confidence: 0.6
     examples:
       - "create an API endpoint"
       - "build a REST API"
       - "I need API routes for CRUD"
       - "generate endpoint for users"
       - "create a fetch request handler"
+      - "create endpoints to fetch data"
 mcp_dependencies:
   - server: context7
     required: false

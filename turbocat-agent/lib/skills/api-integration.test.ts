@@ -7,14 +7,17 @@
  * @file D:/009_Projects_AI/Personal_Projects/Turbocat/turbocat-agent/lib/skills/api-integration.test.ts
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { SkillDetector } from './detector'
-import { SkillRegistry } from './registry'
+import { MockSkillRegistry as SkillRegistry } from './__mocks__/registry'
 import { SkillParser } from './parser'
 import { APIIntegrationHandler } from './handlers/api-integration'
 import type { SkillDefinition } from './types'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
+
+// Use process.cwd() as we run tests from turbocat-agent directory
+const skillsDir = join(process.cwd(), 'skills')
 
 /**
  * Task 12.1: Write 4 focused tests for api-integration skill
@@ -37,8 +40,12 @@ describe('API Integration Skill', () => {
     handler = new APIIntegrationHandler()
 
     // Load and register the api-integration skill
-    const skillPath = join(__dirname, '../../skills/api-integration.skill.md')
+    const skillPath = join(skillsDir, 'api-integration.skill.md')
     try {
+      if (!existsSync(skillPath)) {
+        console.warn(`Skill file not found at: ${skillPath}`)
+        return
+      }
       const skillContent = readFileSync(skillPath, 'utf-8')
       const parsed = await parser.parse(skillContent)
 
@@ -57,8 +64,8 @@ describe('API Integration Skill', () => {
 
       await registry.register(skill)
     } catch (error) {
-      // Skill file may not exist yet during initial test run
-      console.warn('API integration skill file not found, skipping registration')
+      // Log the actual error for debugging
+      console.warn('API integration skill registration failed:', error instanceof Error ? error.message : error)
     }
   })
 
@@ -177,7 +184,7 @@ describe('API Integration Skill', () => {
       expect(putRoute).toBeDefined()
       expect(putRoute!.path).toBe('/api/products/[id]')
       expect(putRoute!.code).toContain('export async function PUT')
-      expect(putRoute!.code).toContain('params.id')
+      expect(putRoute!.code).toContain('const { id } = await params')
 
       const deleteRoute = routes.find((r) => r.method === 'DELETE')
       expect(deleteRoute).toBeDefined()

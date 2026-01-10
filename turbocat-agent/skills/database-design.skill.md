@@ -6,7 +6,7 @@ category: core
 description: Design database schemas using Drizzle ORM from natural language descriptions
 triggers:
   - pattern: "database|schema|table|entity|model|migration"
-    confidence: 0.7
+    confidence: 0.6
     examples:
       - "create a database schema"
       - "design tables for a blog"

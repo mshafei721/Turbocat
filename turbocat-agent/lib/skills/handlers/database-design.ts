@@ -88,8 +88,9 @@ export class DatabaseDesignHandler {
   extractFields(entity: string, prompt: string): string[] {
     const fields = new Set<string>()
 
-    // Extract from parenthetical field lists: "users (id, name, email)"
-    const entityPattern = new RegExp(`${entity}[^(]*\\(([^)]+)\\)`, 'i')
+    // Extract from parenthetical field lists: "users (id, name, email)" or "users table (id, name, email)"
+    // This pattern requires entity name followed immediately by optional "table" and then parentheses
+    const entityPattern = new RegExp(`${entity}(?:\\s+table)?\\s*\\(([^)]+)\\)`, 'i')
     const match = entityPattern.exec(prompt)
     if (match) {
       const fieldList = match[1].split(/,\s*/)
@@ -540,6 +541,8 @@ ${columns.join(',\n')}
       'databases',
       'table',
       'tables',
+      'blog', // descriptor, not entity (e.g., "blog schema")
+      'app', // descriptor, not entity (e.g., "app database")
       'id', // field name, not entity
       'name', // field name, not entity
       'title', // field name, not entity

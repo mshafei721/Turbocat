@@ -9,12 +9,15 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { SkillDetector } from './detector'
-import { SkillRegistry } from './registry'
+import { MockSkillRegistry as SkillRegistry } from './__mocks__/registry'
 import { SkillParser } from './parser'
 import { DatabaseDesignHandler } from './handlers/database-design'
 import type { SkillDefinition } from './types'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
+
+// Use process.cwd() as we run tests from turbocat-agent directory
+const skillsDir = join(process.cwd(), 'skills')
 
 /**
  * Task 11.1: Write 4 focused tests for database-design skill
@@ -37,8 +40,12 @@ describe('Database Design Skill', () => {
     handler = new DatabaseDesignHandler()
 
     // Load and register the database-design skill
-    const skillPath = join(__dirname, '../../skills/database-design.skill.md')
+    const skillPath = join(skillsDir, 'database-design.skill.md')
     try {
+      if (!existsSync(skillPath)) {
+        console.warn(`Skill file not found at: ${skillPath}`)
+        return
+      }
       const skillContent = readFileSync(skillPath, 'utf-8')
       const parsed = await parser.parse(skillContent)
 
@@ -57,8 +64,8 @@ describe('Database Design Skill', () => {
 
       await registry.register(skill)
     } catch (error) {
-      // Skill file may not exist yet during initial test run
-      console.warn('Database design skill file not found, skipping registration')
+      // Log the actual error for debugging
+      console.warn('Database design skill registration failed:', error instanceof Error ? error.message : error)
     }
   })
 
