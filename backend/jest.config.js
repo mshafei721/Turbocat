@@ -77,6 +77,9 @@ module.exports = {
   // Force exit after tests complete (prevents hanging)
   forceExit: true,
 
+  // Disable Watchman on Windows (uses native fs watcher instead)
+  watchman: false,
+
   // Global setup/teardown (for integration tests)
   // globalSetup: '<rootDir>/src/__tests__/globalSetup.ts',
   // globalTeardown: '<rootDir>/src/__tests__/globalTeardown.ts',

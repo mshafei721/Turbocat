@@ -40,7 +40,6 @@ export {
   LLMAgentExecutor,
   type LLMAgentConfig,
   type LLMExecutionResult,
-  type LLMProvider,
   type ChatMessage,
   type MessageRole,
 } from './LLMAgentExecutor';

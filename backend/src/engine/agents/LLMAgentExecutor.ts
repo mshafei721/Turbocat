@@ -1,8 +1,8 @@
 /**
  * LLM Agent Executor
  *
- * Executes LLM agents that interact with large language models.
- * Supports OpenAI and Anthropic integrations.
+ * Executes LLM agents using Claude Agent SDK.
+ * Claude is the ONLY supported AI provider.
  *
  * @module engine/agents/LLMAgentExecutor
  */
@@ -14,15 +14,11 @@ import {
   AgentExecutionInput,
   ExecutionMetrics,
 } from './AgentExecutor';
+import { getAgentConfig } from '../../services/agent-sdk/config';
 
 // =============================================================================
 // TYPES
 // =============================================================================
-
-/**
- * Supported LLM providers
- */
-export type LLMProvider = 'openai' | 'anthropic';
 
 /**
  * Message role for chat completions
@@ -41,9 +37,7 @@ export interface ChatMessage {
  * LLM agent configuration in agent.config
  */
 export interface LLMAgentConfig {
-  /** LLM provider to use */
-  provider: LLMProvider;
-  /** Model to use (e.g., gpt-4, claude-3-opus) */
+  /** Model to use (claude-sonnet-4-5-20250929, claude-opus-4-20250514, etc.) */
   model: string;
   /** System prompt */
   systemPrompt?: string;
@@ -51,22 +45,12 @@ export interface LLMAgentConfig {
   promptTemplate?: string;
   /** Static messages to include */
   messages?: ChatMessage[];
-  /** Temperature for response randomness (0-2, default: 0.7) */
+  /** Temperature for response randomness (0-1, default: 0.7) */
   temperature?: number;
-  /** Maximum tokens in response (default: 1000) */
+  /** Maximum tokens in response (default: 4096) */
   maxTokens?: number;
-  /** Top P sampling (0-1) */
-  topP?: number;
-  /** Frequency penalty (0-2) */
-  frequencyPenalty?: number;
-  /** Presence penalty (0-2) */
-  presencePenalty?: number;
-  /** Stop sequences */
-  stopSequences?: string[];
-  /** Response format: text or json_object (OpenAI only) */
+  /** Response format: text or json_object */
   responseFormat?: 'text' | 'json_object';
-  /** API key override (defaults to env var) */
-  apiKey?: string;
 }
 
 /**
@@ -77,47 +61,38 @@ export interface LLMExecutionResult {
   content: string;
   /** Parsed JSON if response format is json_object */
   parsedJson?: unknown;
-  /** Provider used */
-  provider: LLMProvider;
   /** Model used */
   model: string;
   /** Finish reason */
   finishReason: string;
-  /** Token usage */
-  usage: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
+  /** Cost in USD (if available) */
+  costUsd?: number;
 }
 
-/**
- * OpenAI chat completion response format
- */
-interface OpenAIResponse {
-  id: string;
-  choices: Array<{
-    message: { content: string };
-    finish_reason: string;
-  }>;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
+// =============================================================================
+// CLAUDE AGENT SDK LOADER
+// =============================================================================
 
 /**
- * Anthropic message response format
+ * Dynamically loaded SDK query function
  */
-interface AnthropicResponse {
-  id: string;
-  content: Array<{ type: string; text: string }>;
-  stop_reason: string;
-  usage: {
-    input_tokens: number;
-    output_tokens: number;
-  };
+let sdkQuery: typeof import('@anthropic-ai/claude-agent-sdk').query | null = null;
+
+/**
+ * Get the SDK query function, loading it dynamically if needed
+ */
+async function getSDKQuery(): Promise<typeof import('@anthropic-ai/claude-agent-sdk').query> {
+  if (!sdkQuery) {
+    try {
+      const sdk = await import('@anthropic-ai/claude-agent-sdk');
+      sdkQuery = sdk.query;
+    } catch {
+      throw new Error(
+        'Claude Agent SDK is not installed. Run: npm install @anthropic-ai/claude-agent-sdk',
+      );
+    }
+  }
+  return sdkQuery;
 }
 
 // =============================================================================
@@ -125,14 +100,12 @@ interface AnthropicResponse {
 // =============================================================================
 
 /**
- * Executor for LLM agents
+ * Executor for LLM agents using Claude Agent SDK
  *
  * Features:
- * - OpenAI integration (GPT-3.5, GPT-4, etc.)
- * - Anthropic integration (Claude models)
+ * - Claude Agent SDK integration with full skill support
  * - Template variable substitution in prompts
- * - Token usage tracking
- * - Temperature and sampling controls
+ * - Automatic skill loading from .claude/skills/
  * - JSON response parsing
  */
 export class LLMAgentExecutor extends AgentExecutor {
@@ -150,40 +123,22 @@ export class LLMAgentExecutor extends AgentExecutor {
   }
 
   /**
-   * Execute the LLM agent
+   * Execute the LLM agent using Claude Agent SDK
    */
   protected async executeInternal(input: AgentExecutionInput): Promise<LLMExecutionResult> {
     this.validateInput(input);
 
     const agentConfig = this.parseAgentConfig(input.agent, input.inputs);
 
-    this.log('info', `Executing LLM agent`, {
-      provider: agentConfig.provider,
+    this.log('info', `Executing LLM agent with Claude`, {
       model: agentConfig.model,
       hasSystemPrompt: !!agentConfig.systemPrompt,
     });
 
-    // Execute based on provider
-    let result: LLMExecutionResult;
-
-    switch (agentConfig.provider) {
-      case 'openai':
-        result = await this.executeOpenAI(agentConfig, input.inputs);
-        break;
-      case 'anthropic':
-        result = await this.executeAnthropic(agentConfig, input.inputs);
-        break;
-      default:
-        throw new Error(`Unsupported LLM provider: ${agentConfig.provider}`);
-    }
+    const result = await this.executeClaude(agentConfig, input.inputs);
 
     // Update metrics
     this.executionMetrics = {
-      tokensUsed: {
-        input: result.usage.promptTokens,
-        output: result.usage.completionTokens,
-        total: result.usage.totalTokens,
-      },
       apiCalls: 1,
     };
 
@@ -197,18 +152,10 @@ export class LLMAgentExecutor extends AgentExecutor {
     const config = agent.config as Record<string, unknown> | null;
 
     if (!config) {
-      throw new Error('LLM agent requires configuration with provider and model');
+      throw new Error('LLM agent requires configuration with model');
     }
 
-    const provider = (config.provider as string) || 'openai';
-    if (!this.isValidProvider(provider)) {
-      throw new Error(`Unsupported LLM provider: ${provider}. Supported: openai, anthropic`);
-    }
-
-    const model = config.model as string;
-    if (!model) {
-      throw new Error('LLM agent requires a model');
-    }
+    const model = (config.model as string) || 'claude-sonnet-4-5-20250929';
 
     // Process prompt template with variable substitution
     let promptTemplate = config.promptTemplate as string | undefined;
@@ -223,37 +170,33 @@ export class LLMAgentExecutor extends AgentExecutor {
     }
 
     return {
-      provider: provider,
       model,
       systemPrompt,
       promptTemplate,
       messages: config.messages as ChatMessage[] | undefined,
       temperature: (config.temperature as number) ?? 0.7,
-      maxTokens: (config.maxTokens as number) ?? 1000,
-      topP: config.topP as number | undefined,
-      frequencyPenalty: config.frequencyPenalty as number | undefined,
-      presencePenalty: config.presencePenalty as number | undefined,
-      stopSequences: config.stopSequences as string[] | undefined,
+      maxTokens: (config.maxTokens as number) ?? 4096,
       responseFormat: config.responseFormat as 'text' | 'json_object' | undefined,
-      apiKey: config.apiKey as string | undefined,
     };
-  }
-
-  /**
-   * Check if provider is valid
-   */
-  private isValidProvider(provider: string): provider is LLMProvider {
-    return ['openai', 'anthropic'].includes(provider);
   }
 
   /**
    * Substitute template variables in a string
    */
   private substituteVariables(template: string, inputs: Record<string, unknown>): string {
-    return template.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+    return template.replace(/\{\{([^}]+)\}\}/g, (match: string, key: string) => {
       const trimmedKey = key.trim();
       const value = this.getNestedValue(inputs, trimmedKey);
-      return value !== undefined ? String(value) : match;
+      if (value === undefined) {
+        return match;
+      }
+      if (typeof value === 'string') {
+        return value;
+      }
+      if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+      }
+      return JSON.stringify(value);
     });
   }
 
@@ -279,235 +222,130 @@ export class LLMAgentExecutor extends AgentExecutor {
   }
 
   /**
-   * Execute using OpenAI API
+   * Execute using Claude Agent SDK
+   *
+   * This is the PRIMARY and ONLY way to process LLM requests.
+   * Uses the Agent SDK with full skill support enabled by default.
    */
-  private async executeOpenAI(
+  private async executeClaude(
     config: LLMAgentConfig,
     inputs: Record<string, unknown>,
   ): Promise<LLMExecutionResult> {
-    const apiKey = config.apiKey || process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY environment variable.');
-    }
+    // Get SDK configuration (includes API key validation)
+    const sdkConfig = getAgentConfig();
 
-    // Build messages
-    const messages: Array<{ role: string; content: string }> = [];
+    // Get the SDK query function
+    const query = await getSDKQuery();
 
-    if (config.systemPrompt) {
-      messages.push({ role: 'system', content: config.systemPrompt });
-    }
-
-    if (config.messages) {
-      messages.push(...config.messages);
-    }
+    // Build the prompt from inputs
+    let userPrompt = '';
 
     if (config.promptTemplate) {
-      messages.push({ role: 'user', content: config.promptTemplate });
+      userPrompt = config.promptTemplate;
     } else if (inputs.prompt) {
-      messages.push({ role: 'user', content: String(inputs.prompt) });
+      userPrompt =
+        typeof inputs.prompt === 'string' ? inputs.prompt : JSON.stringify(inputs.prompt);
     } else if (inputs.message) {
-      messages.push({ role: 'user', content: String(inputs.message) });
+      userPrompt =
+        typeof inputs.message === 'string' ? inputs.message : JSON.stringify(inputs.message);
     }
 
-    if (messages.length === 0) {
-      throw new Error('LLM agent requires at least one message or prompt');
+    if (!userPrompt) {
+      throw new Error('LLM agent requires a prompt or message input');
     }
 
-    // Build request body
-    const body: Record<string, unknown> = {
-      model: config.model,
-      messages,
-      temperature: config.temperature,
-      max_tokens: config.maxTokens,
-    };
-
-    if (config.topP !== undefined) {
-      body.top_p = config.topP;
-    }
-    if (config.frequencyPenalty !== undefined) {
-      body.frequency_penalty = config.frequencyPenalty;
-    }
-    if (config.presencePenalty !== undefined) {
-      body.presence_penalty = config.presencePenalty;
-    }
-    if (config.stopSequences) {
-      body.stop = config.stopSequences;
-    }
-    if (config.responseFormat === 'json_object') {
-      body.response_format = { type: 'json_object' };
+    // Add system prompt context if provided
+    if (config.systemPrompt) {
+      userPrompt = `${config.systemPrompt}\n\n${userPrompt}`;
     }
 
-    this.log('debug', 'Calling OpenAI API', {
-      model: config.model,
-      messageCount: messages.length,
+    // Map config model to SDK model format
+    const model = this.mapToSDKModel(config.model);
+
+    this.log('debug', 'Calling Claude Agent SDK', {
+      model,
+      promptLength: userPrompt.length,
+      hasSystemPrompt: !!config.systemPrompt,
+      skillsEnabled: true,
+      skillsDirectory: sdkConfig.skillsDirectory,
     });
 
-    // Make API request
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
+    try {
+      // Execute using the Claude Agent SDK with full capabilities
+      const messageStream = query({
+        prompt: userPrompt,
+        options: {
+          model,
+          cwd: sdkConfig.skillsDirectory,
+          systemPrompt: config.systemPrompt,
+          allowedTools: sdkConfig.allowedTools,
+          permissionMode: 'bypassPermissions',
+        },
+      });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`OpenAI API error (${response.status}): ${errorBody}`);
-    }
+      // Collect all messages and extract the final result
+      let finalContent = '';
+      let totalCost = 0;
 
-    const data = (await response.json()) as OpenAIResponse;
-    const content = data.choices[0]?.message?.content || '';
-    const finishReason = data.choices[0]?.finish_reason || 'unknown';
-
-    // Parse JSON if requested
-    let parsedJson: unknown;
-    if (config.responseFormat === 'json_object') {
-      try {
-        parsedJson = JSON.parse(content);
-      } catch {
-        this.log('warn', 'Failed to parse JSON response');
+      for await (const message of messageStream) {
+        if (message.type === 'text') {
+          finalContent += message.text;
+        } else if (message.type === 'result') {
+          finalContent = message.result;
+          totalCost = message.total_cost_usd ?? 0;
+        }
       }
+
+      // Parse JSON if requested
+      let parsedJson: unknown;
+      if (config.responseFormat === 'json_object') {
+        try {
+          parsedJson = JSON.parse(finalContent);
+        } catch {
+          this.log('warn', 'Failed to parse JSON response from SDK');
+        }
+      }
+
+      this.log('info', 'Claude Agent SDK call completed', {
+        model,
+        contentLength: finalContent.length,
+        skillsUsed: true,
+        totalCostUsd: totalCost,
+      });
+
+      return {
+        content: finalContent,
+        parsedJson,
+        model: config.model,
+        finishReason: 'stop',
+        costUsd: totalCost,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.log('error', 'Claude Agent SDK call failed', { error: errorMessage });
+      throw new Error(`Claude Agent SDK error: ${errorMessage}`);
     }
-
-    this.log('info', 'OpenAI API call completed', {
-      promptTokens: data.usage.prompt_tokens,
-      completionTokens: data.usage.completion_tokens,
-      finishReason,
-    });
-
-    return {
-      content,
-      parsedJson,
-      provider: 'openai',
-      model: config.model,
-      finishReason,
-      usage: {
-        promptTokens: data.usage.prompt_tokens,
-        completionTokens: data.usage.completion_tokens,
-        totalTokens: data.usage.total_tokens,
-      },
-    };
   }
 
   /**
-   * Execute using Anthropic API
+   * Map model names to SDK-compatible format
    */
-  private async executeAnthropic(
-    config: LLMAgentConfig,
-    inputs: Record<string, unknown>,
-  ): Promise<LLMExecutionResult> {
-    const apiKey = config.apiKey || process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        'Anthropic API key not configured. Set ANTHROPIC_API_KEY environment variable.',
-      );
-    }
-
-    // Build messages (Anthropic has different format than OpenAI)
-    const messages: Array<{ role: string; content: string }> = [];
-
-    // Anthropic uses system as a top-level parameter, not a message
-    const systemPrompt = config.systemPrompt;
-
-    if (config.messages) {
-      // Filter out system messages (handled separately in Anthropic)
-      messages.push(...config.messages.filter((m) => m.role !== 'system'));
-    }
-
-    if (config.promptTemplate) {
-      messages.push({ role: 'user', content: config.promptTemplate });
-    } else if (inputs.prompt) {
-      messages.push({ role: 'user', content: String(inputs.prompt) });
-    } else if (inputs.message) {
-      messages.push({ role: 'user', content: String(inputs.message) });
-    }
-
-    if (messages.length === 0) {
-      throw new Error('LLM agent requires at least one message or prompt');
-    }
-
-    // Build request body
-    const body: Record<string, unknown> = {
-      model: config.model,
-      messages,
-      max_tokens: config.maxTokens,
+  private mapToSDKModel(model: string): string {
+    const modelMap: Record<string, string> = {
+      // Legacy Claude 3 names -> Current SDK models
+      'claude-3-opus': 'claude-opus-4-20250514',
+      'claude-3-opus-20240229': 'claude-opus-4-20250514',
+      'claude-3-sonnet': 'claude-sonnet-4-5-20250929',
+      'claude-3-5-sonnet': 'claude-sonnet-4-5-20250929',
+      'claude-3-5-sonnet-20241022': 'claude-sonnet-4-5-20250929',
+      'claude-3-haiku': 'claude-3-5-sonnet-20241022',
+      'claude-3-haiku-20240307': 'claude-3-5-sonnet-20241022',
+      // Shorthand names
+      sonnet: 'claude-sonnet-4-5-20250929',
+      opus: 'claude-opus-4-20250514',
     };
 
-    if (systemPrompt) {
-      body.system = systemPrompt;
-    }
-    if (config.temperature !== undefined) {
-      body.temperature = config.temperature;
-    }
-    if (config.topP !== undefined) {
-      body.top_p = config.topP;
-    }
-    if (config.stopSequences) {
-      body.stop_sequences = config.stopSequences;
-    }
-
-    this.log('debug', 'Calling Anthropic API', {
-      model: config.model,
-      messageCount: messages.length,
-      hasSystem: !!systemPrompt,
-    });
-
-    // Make API request
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`Anthropic API error (${response.status}): ${errorBody}`);
-    }
-
-    const data = (await response.json()) as AnthropicResponse;
-
-    // Extract text content
-    const textContent = data.content.find((c) => c.type === 'text');
-    const content = textContent?.text || '';
-    const finishReason = data.stop_reason || 'unknown';
-
-    // Parse JSON if requested
-    let parsedJson: unknown;
-    if (config.responseFormat === 'json_object') {
-      try {
-        parsedJson = JSON.parse(content);
-      } catch {
-        this.log('warn', 'Failed to parse JSON response');
-      }
-    }
-
-    const promptTokens = data.usage.input_tokens;
-    const completionTokens = data.usage.output_tokens;
-
-    this.log('info', 'Anthropic API call completed', {
-      promptTokens,
-      completionTokens,
-      finishReason,
-    });
-
-    return {
-      content,
-      parsedJson,
-      provider: 'anthropic',
-      model: config.model,
-      finishReason,
-      usage: {
-        promptTokens,
-        completionTokens,
-        totalTokens: promptTokens + completionTokens,
-      },
-    };
+    return modelMap[model] || model;
   }
 
   /**

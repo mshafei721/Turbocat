@@ -19,32 +19,29 @@ export interface Model {
   tier: 'free' | 'pro' | 'enterprise'
 }
 
+/**
+ * Available Claude models
+ * Claude is the ONLY AI provider for Turbocat
+ */
 const MODELS: Model[] = [
   {
-    id: 'gpt-4o',
-    name: 'GPT-4o',
+    id: 'claude-sonnet-4-5-20250929',
+    name: 'Claude Sonnet 4.5',
+    description: 'Best balance of speed and capability',
+    icon: Sparkle,
+    tier: 'free',
+  },
+  {
+    id: 'claude-opus-4-20250514',
+    name: 'Claude Opus 4',
     description: 'Most capable, best for complex tasks',
     icon: Brain,
     tier: 'pro',
   },
   {
-    id: 'gpt-4o-mini',
-    name: 'GPT-4o Mini',
-    description: 'Fast and efficient for most tasks',
-    icon: Lightning,
-    tier: 'free',
-  },
-  {
-    id: 'claude-3-5-sonnet',
+    id: 'claude-3-5-sonnet-20241022',
     name: 'Claude 3.5 Sonnet',
-    description: 'Great for code and reasoning',
-    icon: Sparkle,
-    tier: 'pro',
-  },
-  {
-    id: 'claude-3-5-haiku',
-    name: 'Claude 3.5 Haiku',
-    description: 'Quick responses, good balance',
+    description: 'Fast and efficient for most tasks',
     icon: Lightning,
     tier: 'free',
   },
@@ -58,12 +55,12 @@ interface ModelSelectorProps {
 }
 
 export function ModelSelector({
-  selectedModel = 'gpt-4o-mini',
+  selectedModel = 'claude-sonnet-4-5-20250929',
   onModelChange,
   disabled = false,
   className,
 }: ModelSelectorProps) {
-  const currentModel = MODELS.find((m) => m.id === selectedModel) || MODELS[1]
+  const currentModel = MODELS.find((m) => m.id === selectedModel) || MODELS[0]
 
   return (
     <DropdownMenu>

@@ -59,7 +59,6 @@ export {
   type ApiAuthConfig,
   type LLMAgentConfig,
   type LLMExecutionResult,
-  type LLMProvider,
   type ChatMessage,
   type MessageRole,
   type DataAgentConfig,

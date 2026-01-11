@@ -1,3 +1,9 @@
+/**
+ * Sandbox types for Turbocat
+ *
+ * Claude Agent SDK is the ONLY AI provider.
+ */
+
 import { Sandbox } from '@vercel/sandbox'
 import { LogEntry } from '@/lib/db/schema'
 
@@ -8,10 +14,11 @@ export interface SandboxConfig {
   gitAuthorName?: string
   gitAuthorEmail?: string
   apiKeys?: {
+    ANTHROPIC_API_KEY?: string
+    // Legacy keys - kept for backwards compatibility only
     OPENAI_API_KEY?: string
     GEMINI_API_KEY?: string
     CURSOR_API_KEY?: string
-    ANTHROPIC_API_KEY?: string
     AI_GATEWAY_API_KEY?: string
   }
   timeout?: string
@@ -21,6 +28,7 @@ export interface SandboxConfig {
     vcpus?: number
   }
   taskPrompt?: string
+  /** @deprecated Use selectedModel instead - only 'claude' is supported */
   selectedAgent?: string
   selectedModel?: string
   installDependencies?: boolean
@@ -43,10 +51,12 @@ export interface AgentExecutionResult {
   success: boolean
   output?: string
   agentResponse?: string
+  /** @deprecated Legacy field - agent name */
   cliName?: string
   changesDetected?: boolean
   error?: string
   streamingLogs?: unknown[]
   logs?: LogEntry[]
-  sessionId?: string // For Cursor agent session resumption
+  /** @deprecated Legacy field - session tracking */
+  sessionId?: string
 }

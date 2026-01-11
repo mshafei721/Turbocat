@@ -1,0 +1,57 @@
+{
+  "$schema": "https://claude.ai/schemas/settings.json",
+  "version": "1.0.0",
+  "description": "Turbocat Agent SDK Configuration",
+
+  "settingSources": ["project"],
+
+  "allowedTools": [
+    "Skill",
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Glob",
+    "Grep",
+    "WebFetch",
+    "WebSearch",
+    "Task",
+    "TodoWrite",
+    "AskUserQuestion"
+  ],
+
+  "skills": {
+    "enabled": true,
+    "directories": [
+      ".claude/skills/anthropic",
+      ".claude/skills"
+    ],
+    "autoload": [
+      "skill-creator",
+      "frontend-design",
+      "mcp-builder"
+    ]
+  },
+
+  "agent": {
+    "defaultModel": "claude-sonnet-4-5-20250929",
+    "maxTurns": 100,
+    "systemPromptPrefix": "You are an AI assistant powered by the Turbocat platform. You have access to official Anthropic skills and custom skills to help users build applications."
+  },
+
+  "permissions": {
+    "fileOperations": {
+      "read": true,
+      "write": true,
+      "delete": false
+    },
+    "networkOperations": {
+      "webFetch": true,
+      "webSearch": true
+    },
+    "systemOperations": {
+      "bash": true,
+      "dangerousCommands": false
+    }
+  }
+}
