@@ -8,13 +8,12 @@ on:
 
 env:
   NODE_VERSION: '20'
-  PNPM_VERSION: '10'
 
 jobs:
-  test:
-    name: Test & Build
+  # Frontend Tests and Build
+  frontend:
+    name: Frontend - Test & Build
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./turbocat-agent
@@ -27,46 +26,72 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          cache: 'npm'
+          cache-dependency-path: turbocat-agent/package-lock.json
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: TypeScript check
-        run: pnpm type-check || true
-        continue-on-error: true
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
 
       - name: Run tests
-        run: pnpm test
-        continue-on-error: true
+        run: npm test
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Build application
-        run: pnpm build
+        run: npm run build
 
+  # Backend Tests and Build
+  backend:
+    name: Backend - Test & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          JWT_ACCESS_SECRET: ${{ secrets.JWT_ACCESS_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Build application
+        run: npm run build
+
+  # Deploy Preview (Frontend only)
   deploy-preview:
     name: Deploy Preview
-    needs: test
+    needs: [frontend]
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
@@ -83,9 +108,10 @@ jobs:
           working-directory: ./turbocat-agent
           scope: ${{ secrets.VERCEL_ORG_ID }}
 
+  # Deploy Production (Frontend only)
   deploy-production:
     name: Deploy Production
-    needs: test
+    needs: [frontend, backend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
 

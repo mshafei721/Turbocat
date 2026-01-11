@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-01-11T14:00:00Z",
+  "summary": {
+    "deadExports": 1,
+    "orphanedDirectories": 1,
+    "totalEstimatedLinesOfCode": 2500,
+    "confidenceLevel": "HIGH"
+  },
+  "findings": [
+    {
+      "id": "DC-001",
+      "type": "unused_export",
+      "file": "turbocat-agent/lib/github-stars.ts",
+      "lines": "4-24",
+      "name": "getGitHubStars",
+      "description": "Async function that fetches GitHub stars for a hardcoded repo. Zero imports found across entire codebase.",
+      "confidence": "HIGH",
+      "recommendation": "REMOVE",
+      "impact": "LOW",
+      "estimatedLOC": 25
+    },
+    {
+      "id": "DC-002",
+      "type": "orphaned_directory",
+      "file": "turbocat-agent/lib/mobile-components/",
+      "lines": "N/A",
+      "name": "Mobile Components Library",
+      "description": "Complete React Native component library with 21 components across 5 categories (Layout, Navigation, Input, Data Display, Feedback). Never imported anywhere in the codebase.",
+      "confidence": "HIGH",
+      "recommendation": "INVESTIGATE_OR_REMOVE",
+      "impact": "MEDIUM",
+      "estimatedLOC": 2500,
+      "contents": [
+        "layout/ - Screen, Container, Card, Divider, Spacer",
+        "navigation/ - Header, TabBar, Drawer, BackButton",
+        "input/ - Button, TextInput, Checkbox, Radio, Switch",
+        "data-display/ - List, Avatar, Badge, Chip",
+        "feedback/ - Modal, Loading, Toast",
+        "nativewind.config.ts",
+        "utils.ts",
+        "index.ts"
+      ]
+    }
+  ],
+  "falsePositivesVerified": [
+    "TaskActions - Used in task-page-header.tsx",
+    "HomePageMobileFooter - Used in home-page-content.tsx",
+    "All Backend Routes - Registered in app.ts",
+    "Trace Components - Used in Storybook stories",
+    "Design Tokens - Used throughout components"
+  ]
+}

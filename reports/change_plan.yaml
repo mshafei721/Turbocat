@@ -1,0 +1,283 @@
+# Turbocat Architectural Review & Monorepo Unification - Change Plan
+# Generated: 2026-01-11
+
+metadata:
+  project: turbocat
+  version: 1.0.0
+  branch: chore/unify-monorepo-arch-review-tdd-refactor
+  author: Claude Code
+
+phases:
+  - id: phase-1
+    name: "Baseline Cleanup"
+    priority: P0
+    risk: LOW
+    items:
+      - id: FIX-001
+        name: "Fix CRLF line endings in backend"
+        type: lint-fix
+        files:
+          - backend/src/**/*.ts
+        commands:
+          - "cd backend && npm run lint:fix"
+        test_plan:
+          - "cd backend && npm run lint"
+        acceptance: "Lint passes with 0 errors"
+        effort: "5 minutes"
+
+      - id: FIX-002
+        name: "Remove pnpm-lock.yaml from frontend"
+        type: cleanup
+        files:
+          - turbocat-agent/pnpm-lock.yaml
+        commands:
+          - "rm turbocat-agent/pnpm-lock.yaml"
+        test_plan:
+          - "npm install in frontend still works"
+        acceptance: "Only package-lock.json remains"
+        effort: "1 minute"
+
+      - id: FIX-003
+        name: "Fix CI to not mask failures"
+        type: ci-fix
+        files:
+          - .github/workflows/ci.yml
+        changes:
+          - "Remove continue-on-error: true from TypeScript check"
+          - "Remove continue-on-error: true from tests"
+        test_plan:
+          - "CI fails on actual failures"
+        acceptance: "CI stops masking failures"
+        effort: "5 minutes"
+
+      - id: FIX-004
+        name: "Fix empty test files in frontend"
+        type: test-fix
+        files:
+          - turbocat-agent/__tests__/component-theming.test.ts
+          - turbocat-agent/__tests__/design-tokens.test.ts
+          - turbocat-agent/__tests__/fonts.test.ts
+          - turbocat-agent/__tests__/mcp-manager.test.ts
+          - turbocat-agent/__tests__/mcp-ui.test.ts
+          - turbocat-agent/__tests__/skills-ui.test.ts
+        changes:
+          - "Convert exported functions to Vitest describe/it syntax"
+        test_plan:
+          - "cd turbocat-agent && npm test"
+        acceptance: "All 44 test suites pass"
+        effort: "30 minutes"
+
+  - id: phase-2
+    name: "Dead Code Removal"
+    priority: P1
+    risk: LOW
+    items:
+      - id: DEAD-001
+        name: "Remove unused getGitHubStars function"
+        type: dead-code
+        files:
+          - turbocat-agent/lib/github-stars.ts
+        test_plan:
+          - "Verify no imports in codebase"
+          - "Run all tests"
+        acceptance: "File deleted, tests pass"
+        effort: "5 minutes"
+
+      - id: DEAD-002
+        name: "Archive or remove mobile-components library"
+        type: dead-code
+        files:
+          - turbocat-agent/lib/mobile-components/
+        decision_required: true
+        options:
+          - "REMOVE: Delete entire directory (~2500 LOC)"
+          - "ARCHIVE: Move to separate branch for future use"
+        test_plan:
+          - "Verify no imports in codebase"
+          - "Run all tests"
+        acceptance: "Directory removed or archived, tests pass"
+        effort: "10 minutes"
+
+  - id: phase-3
+    name: "Frontend Navigation Fixes"
+    priority: P0
+    risk: MEDIUM
+    items:
+      - id: NAV-001
+        name: "Remove broken /projects link"
+        type: nav-fix
+        files:
+          - turbocat-agent/components/turbocat/Sidebar.tsx
+          - turbocat-agent/components/turbocat/TopNav.tsx
+        changes:
+          - "Remove /projects nav item from Sidebar.tsx L41"
+          - "Remove /projects nav item from TopNav.tsx L26"
+        test_plan:
+          - "Verify navigation renders"
+          - "No 404 errors in navigation"
+        acceptance: "All nav links point to valid routes"
+        effort: "10 minutes"
+
+      - id: NAV-002
+        name: "Remove broken /chat link"
+        type: nav-fix
+        files:
+          - turbocat-agent/components/turbocat/Sidebar.tsx
+        changes:
+          - "Remove /chat nav item from Sidebar.tsx L42"
+        test_plan:
+          - "Verify navigation renders"
+        acceptance: "No broken links"
+        effort: "5 minutes"
+
+      - id: NAV-003
+        name: "Fix dead buttons in TopNav"
+        type: nav-fix
+        files:
+          - turbocat-agent/components/turbocat/TopNav.tsx
+        changes:
+          - "Remove search button (L78-84) OR add search modal"
+          - "Remove notifications button (L87-95) OR add notifications panel"
+          - "Make New Project button link to /new (L98-101)"
+        test_plan:
+          - "All buttons have handlers or are removed"
+        acceptance: "No dead buttons in TopNav"
+        effort: "30 minutes"
+
+      - id: NAV-004
+        name: "Fix UserMenu items"
+        type: nav-fix
+        files:
+          - turbocat-agent/components/turbocat/UserMenu.tsx
+        changes:
+          - "Wrap Profile item in Link to /profile"
+          - "Wrap Settings item in Link to /settings"
+          - "Remove API Keys item (no route)"
+          - "Remove Billing item (no route)"
+        test_plan:
+          - "Menu items navigate correctly"
+        acceptance: "All menu items work or are removed"
+        effort: "20 minutes"
+
+  - id: phase-4
+    name: "Deployment Configuration"
+    priority: P0
+    risk: MEDIUM
+    items:
+      - id: DEPLOY-001
+        name: "Create Dockerfile for backend"
+        type: deployment
+        files:
+          - backend/Dockerfile
+        content: |
+          Multi-stage build:
+          - Node 20 Alpine
+          - npm ci for deps
+          - TypeScript build
+          - Prisma generate
+          - Production user
+          - Port 3001
+        test_plan:
+          - "docker build -t turbocat-backend ./backend"
+          - "docker run -p 3001:3001 turbocat-backend"
+          - "curl http://localhost:3001/health"
+        acceptance: "Container builds and runs"
+        effort: "30 minutes"
+
+      - id: DEPLOY-002
+        name: "Create railway.json for backend"
+        type: deployment
+        files:
+          - backend/railway.json
+        content: |
+          - DOCKERFILE builder
+          - Health check path: /health/ready
+          - Restart on failure
+        test_plan:
+          - "railway.json validates"
+        acceptance: "Railway can deploy"
+        effort: "10 minutes"
+
+      - id: DEPLOY-003
+        name: "Update vercel.json for monorepo"
+        type: deployment
+        files:
+          - turbocat-agent/vercel.json
+        changes:
+          - "Ensure rootDirectory is correct for monorepo"
+          - "Add ignore rules for backend changes"
+        test_plan:
+          - "Vercel deploys frontend only"
+        acceptance: "Frontend deploys to Vercel"
+        effort: "15 minutes"
+
+  - id: phase-5
+    name: "Monorepo Unification"
+    priority: P1
+    risk: MEDIUM
+    approval_required: true
+    items:
+      - id: MONO-001
+        name: "Configure npm workspaces"
+        type: monorepo
+        files:
+          - package.json
+        changes:
+          - "Add workspaces field"
+          - "Rename frontend package to @turbocat/web"
+        test_plan:
+          - "npm install works from root"
+        acceptance: "Workspaces configured"
+        effort: "15 minutes"
+
+      - id: MONO-002
+        name: "Update CI for both packages"
+        type: ci
+        files:
+          - .github/workflows/ci.yml
+        changes:
+          - "Add backend build/test/lint jobs"
+          - "Add matrix strategy for frontend/backend"
+          - "Change from pnpm to npm"
+        test_plan:
+          - "CI runs for both packages"
+        acceptance: "CI passes for full monorepo"
+        effort: "30 minutes"
+
+      - id: MONO-003
+        name: "Create shared types package (optional)"
+        type: monorepo
+        files:
+          - packages/shared/
+        decision_required: true
+        options:
+          - "CREATE: Extract common types to packages/shared"
+          - "SKIP: Keep types duplicated for now"
+        test_plan:
+          - "Types imported correctly"
+        acceptance: "No TypeScript errors"
+        effort: "1 hour"
+
+summary:
+  total_items: 16
+  by_priority:
+    P0: 10
+    P1: 6
+  by_risk:
+    LOW: 6
+    MEDIUM: 10
+  decisions_required: 2
+  estimated_effort: "5-6 hours"
+
+success_criteria:
+  - build_green: true
+  - tests_pass: true
+  - lint_clean: true
+  - typecheck_clean: true
+  - coverage_delta: ">= 0"
+  - no_dead_code_reported: true
+  - routes_valid: true
+  - deploy_smoke_green: true
+  - unified_repo_ready: true
+  - vercel_deploy_green: true
+  - railway_deploy_green: true

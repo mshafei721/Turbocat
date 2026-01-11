@@ -6,11 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   House,
-  FolderSimple,
-  Gear,
   Plus,
-  Bell,
-  MagnifyingGlass,
 } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -23,7 +19,6 @@ interface TopNavProps {
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: House },
-  { href: '/projects', label: 'Projects', icon: FolderSimple },
 ]
 
 export function TopNav({ className }: TopNavProps) {
@@ -74,31 +69,13 @@ export function TopNav({ className }: TopNavProps) {
 
         {/* Right Section: Actions + User */}
         <div className="flex items-center gap-3">
-          {/* Search */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden text-slate-400 hover:text-foreground sm:flex"
-          >
-            <MagnifyingGlass size={20} />
-          </Button>
-
-          {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative text-slate-400 hover:text-foreground"
-          >
-            <Bell size={20} />
-            {/* Notification dot */}
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
-          </Button>
-
           {/* New Project Button */}
-          <Button size="sm" className="hidden gap-2 sm:flex">
-            <Plus size={18} weight="bold" />
-            New Project
-          </Button>
+          <Link href="/new">
+            <Button size="sm" className="hidden gap-2 sm:flex">
+              <Plus size={18} weight="bold" />
+              New Project
+            </Button>
+          </Link>
 
           {/* User Menu */}
           <UserMenu />

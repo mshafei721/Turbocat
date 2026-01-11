@@ -1,0 +1,101 @@
+{
+  "timestamp": "2026-01-11T13:59:00Z",
+  "frontend": {
+    "package": "turbocat-agent",
+    "typecheck": {
+      "status": "PASS",
+      "errors": 0
+    },
+    "lint": {
+      "status": "PASS",
+      "warnings": 3,
+      "note": "Babel deoptimized styling warnings for storybook-static files"
+    },
+    "tests": {
+      "status": "PARTIAL",
+      "suites": {
+        "total": 44,
+        "passed": 38,
+        "failed": 6
+      },
+      "tests": {
+        "total": 769,
+        "passed": 749,
+        "failed": 0,
+        "todo": 20
+      },
+      "failedSuites": [
+        "__tests__/component-theming.test.ts - No test suite found (empty file)",
+        "__tests__/design-tokens.test.ts - No test suite found (empty file)",
+        "__tests__/fonts.test.ts - No test suite found (empty file)",
+        "__tests__/mcp-manager.test.ts - No test suite found (empty file)",
+        "__tests__/mcp-ui.test.ts - No test suite found (empty file)",
+        "__tests__/skills-ui.test.ts - No test suite found (empty file)"
+      ]
+    }
+  },
+  "backend": {
+    "package": "@turbocat/backend",
+    "typecheck": {
+      "status": "PASS",
+      "errors": 0
+    },
+    "lint": {
+      "status": "FAIL",
+      "errors": 35200,
+      "warnings": 42,
+      "note": "All 35,158 errors are CRLF line endings (Delete ␍). Auto-fixable with --fix"
+    },
+    "tests": {
+      "status": "PARTIAL",
+      "suites": {
+        "total": 17,
+        "passed": 14,
+        "failed": 3
+      },
+      "tests": {
+        "total": 328,
+        "passed": 311,
+        "failed": 17
+      },
+      "failedTests": [
+        "Workflow routes - POST /api/v1/workflows - Failed to create workflow",
+        "Workflow service - database connectivity issues",
+        "Integration tests requiring database connection"
+      ]
+    }
+  },
+  "predicates": {
+    "build_green": "UNKNOWN",
+    "tests_pass": false,
+    "lint_clean": false,
+    "typecheck_clean": true,
+    "coverage_delta": "BASELINE",
+    "no_dead_code_reported": "PENDING",
+    "routes_valid": "PENDING",
+    "deploy_smoke_green": "PENDING",
+    "unified_repo_ready": false,
+    "vercel_deploy_green": "PENDING",
+    "railway_deploy_green": "PENDING"
+  },
+  "criticalIssues": [
+    {
+      "id": "CI-001",
+      "severity": "P0",
+      "issue": "Backend lint fails with 35K CRLF errors",
+      "fix": "Run npm run lint:fix or configure git autocrlf"
+    },
+    {
+      "id": "CI-002",
+      "severity": "P0",
+      "issue": "6 empty test files in frontend cause suite failures",
+      "fix": "Add placeholder tests or remove empty files"
+    },
+    {
+      "id": "CI-003",
+      "severity": "P1",
+      "issue": "17 backend tests fail (database connectivity)",
+      "fix": "Tests require mocked or real database connection"
+    }
+  ]
+}

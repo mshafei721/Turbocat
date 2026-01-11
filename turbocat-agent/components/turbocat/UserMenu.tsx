@@ -1,12 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
 import {
   User,
   Gear,
-  Key,
-  CreditCard,
   Moon,
   Sun,
   SignOut,
@@ -76,21 +74,17 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <User size={16} className="mr-2" />
-            Profile
+          <DropdownMenuItem asChild>
+            <Link href="/profile" className="flex items-center">
+              <User size={16} className="mr-2" />
+              Profile
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Gear size={16} className="mr-2" />
-            Settings
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Key size={16} className="mr-2" />
-            API Keys
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <CreditCard size={16} className="mr-2" />
-            Billing
+          <DropdownMenuItem asChild>
+            <Link href="/settings" className="flex items-center">
+              <Gear size={16} className="mr-2" />
+              Settings
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

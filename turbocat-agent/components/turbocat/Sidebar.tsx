@@ -6,12 +6,8 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   House,
-  FolderSimple,
   Gear,
   Plus,
-  ChatsCircle,
-  Lightning,
-  Sparkle,
   CaretLeft,
   CaretRight,
 } from '@phosphor-icons/react'
@@ -38,8 +34,6 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: House },
-  { href: '/projects', label: 'Projects', icon: FolderSimple },
-  { href: '/chat', label: 'Chat', icon: ChatsCircle },
 ]
 
 const bottomNavItems: NavItem[] = [
@@ -139,24 +133,28 @@ export function Sidebar({ className }: SidebarProps) {
           {collapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button className="w-full" size="icon">
-                  <Plus size={20} weight="bold" />
-                </Button>
+                <Link href="/new">
+                  <Button className="w-full" size="icon">
+                    <Plus size={20} weight="bold" />
+                  </Button>
+                </Link>
               </TooltipTrigger>
               <TooltipContent side="right">New Project</TooltipContent>
             </Tooltip>
           ) : (
-            <Button className="w-full gap-2">
-              <Plus size={18} weight="bold" />
-              <motion.span
-                initial="collapsed"
-                animate="expanded"
-                variants={itemVariants}
-                transition={{ duration: 0.2 }}
-              >
-                New Project
-              </motion.span>
-            </Button>
+            <Link href="/new">
+              <Button className="w-full gap-2">
+                <Plus size={18} weight="bold" />
+                <motion.span
+                  initial="collapsed"
+                  animate="expanded"
+                  variants={itemVariants}
+                  transition={{ duration: 0.2 }}
+                >
+                  New Project
+                </motion.span>
+              </Button>
+            </Link>
           )}
         </div>
 
