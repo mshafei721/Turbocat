@@ -31,6 +31,7 @@ import {
 import { requireAuth, isAdmin } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
+import { requireStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
 
 const router = Router();
@@ -354,7 +355,7 @@ router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunct
 router.get('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const agentId = req.params.id!;
+    const agentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(agentId);
@@ -528,7 +529,7 @@ router.post('/', requireAuth, async (req: Request, res: Response, next: NextFunc
 router.patch('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const agentId = req.params.id!;
+    const agentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(agentId);
@@ -616,7 +617,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response, next: Next
 router.delete('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const agentId = req.params.id!;
+    const agentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(agentId);
@@ -688,7 +689,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const agentId = req.params.id!;
+      const agentId = requireStringParam(req.params.id, 'id');
 
       // Validate UUID
       validateUuid(agentId);
@@ -782,7 +783,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const agentId = req.params.id!;
+      const agentId = requireStringParam(req.params.id, 'id');
 
       // Validate UUID
       validateUuid(agentId);

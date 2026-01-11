@@ -37,6 +37,7 @@ import {
 import { requireAuth, isAdmin } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
+import { requireStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
 
 const router = Router();
@@ -421,7 +422,7 @@ router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunct
 router.get('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const workflowId = req.params.id!;
+    const workflowId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(workflowId);
@@ -570,7 +571,7 @@ router.post('/', requireAuth, async (req: Request, res: Response, next: NextFunc
 router.patch('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const workflowId = req.params.id!;
+    const workflowId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(workflowId);
@@ -665,7 +666,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response, next: Next
 router.delete('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const workflowId = req.params.id!;
+    const workflowId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(workflowId);
@@ -707,7 +708,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const workflowId = req.params.id!;
+      const workflowId = requireStringParam(req.params.id, 'id');
 
       // Validate UUID
       validateUuid(workflowId);
@@ -788,7 +789,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const workflowId = req.params.id!;
+      const workflowId = requireStringParam(req.params.id, 'id');
 
       // Validate UUID
       validateUuid(workflowId);

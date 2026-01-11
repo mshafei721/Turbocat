@@ -19,6 +19,7 @@ import { Prisma } from '@prisma/client';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
+import { getStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
 import { prisma, isPrismaAvailable } from '../lib/prisma';
 
@@ -324,7 +325,7 @@ router.get(
   requireRole('ADMIN'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.params.id;
+      const userId = getStringParam(req.params.id);
 
       // Validate UUID format
       const uuidRegex =

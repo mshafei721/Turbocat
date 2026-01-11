@@ -25,6 +25,7 @@ import {
 import { requireAuth, optionalAuth } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
+import { requireStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
 
 const router = Router();
@@ -267,7 +268,7 @@ router.get('/categories', async (req: Request, res: Response, next: NextFunction
 router.get('/:id', optionalAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId || null;
-    const templateId = req.params.id!;
+    const templateId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(templateId);
@@ -326,7 +327,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const templateId = req.params.id!;
+      const templateId = requireStringParam(req.params.id, 'id');
 
       // Validate UUID
       validateUuid(templateId);

@@ -19,6 +19,7 @@ import { getExecutionById, getExecutionLogs, cancelExecution } from '../services
 import { requireAuth, isAdmin } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
+import { requireStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
 
 const router = Router();
@@ -110,7 +111,7 @@ const mapLogLevel = (level: string): LogLevel => {
 router.get('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const executionId = req.params.id!;
+    const executionId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(executionId);
@@ -162,7 +163,7 @@ router.get('/:id', requireAuth, async (req: Request, res: Response, next: NextFu
 router.get('/:id/logs', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const executionId = req.params.id!;
+    const executionId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(executionId);
@@ -228,7 +229,7 @@ router.get('/:id/logs', requireAuth, async (req: Request, res: Response, next: N
 router.post('/:id/cancel', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const executionId = req.params.id!;
+    const executionId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(executionId);

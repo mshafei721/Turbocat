@@ -33,6 +33,7 @@ import {
 import { requireAuth, isAdmin } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
+import { requireStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
 
 const router = Router();
@@ -312,7 +313,7 @@ router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunct
 router.get('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const deploymentId = req.params.id!;
+    const deploymentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(deploymentId);
@@ -442,7 +443,7 @@ router.post('/', requireAuth, async (req: Request, res: Response, next: NextFunc
 router.patch('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const deploymentId = req.params.id!;
+    const deploymentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(deploymentId);
@@ -514,7 +515,7 @@ router.patch('/:id', requireAuth, async (req: Request, res: Response, next: Next
 router.delete('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const deploymentId = req.params.id!;
+    const deploymentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(deploymentId);
@@ -551,7 +552,7 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response, next: Nex
 router.post('/:id/start', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const deploymentId = req.params.id!;
+    const deploymentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(deploymentId);
@@ -596,7 +597,7 @@ router.post('/:id/start', requireAuth, async (req: Request, res: Response, next:
 router.post('/:id/stop', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const deploymentId = req.params.id!;
+    const deploymentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(deploymentId);
@@ -645,7 +646,7 @@ router.post('/:id/stop', requireAuth, async (req: Request, res: Response, next: 
 router.get('/:id/logs', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const deploymentId = req.params.id!;
+    const deploymentId = requireStringParam(req.params.id, 'id');
 
     // Validate UUID
     validateUuid(deploymentId);

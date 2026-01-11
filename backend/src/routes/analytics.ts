@@ -25,6 +25,7 @@ import {
 import { requireAuth, requireRole, isAdmin } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
+import { requireStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
 
 const router = Router();
@@ -171,7 +172,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const agentId = req.params.id!;
+      const agentId = requireStringParam(req.params.id, 'id');
 
       // Validate UUID
       validateUuid(agentId, 'agentId');
@@ -243,7 +244,7 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = req.user!;
-      const workflowId = req.params.id!;
+      const workflowId = requireStringParam(req.params.id, 'id');
 
       // Validate UUID
       validateUuid(workflowId, 'workflowId');
