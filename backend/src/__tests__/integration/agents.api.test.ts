@@ -66,7 +66,7 @@ const mockPrismaClient = {
   },
   agent: {
     findUnique: jest.fn<any>(),
-    findFirst: jest.fn<any>(),
+    findFirst: jest.fn<any>().mockResolvedValue(null),
     findMany: jest.fn<any>().mockResolvedValue([]),
     create: jest.fn<any>(),
     update: jest.fn<any>(),
@@ -171,7 +171,7 @@ const authToken = generateTestToken({ userId: mockUserId, email: mockUser.email,
 const resetMocks = () => {
   jest.clearAllMocks();
   mockPrismaClient.user.findUnique.mockResolvedValue(mockUser);
-  mockPrismaClient.agent.findUnique.mockResolvedValue(null);
+  mockPrismaClient.agent.findFirst.mockResolvedValue(null);
   mockPrismaClient.agent.findMany.mockResolvedValue([]);
   mockPrismaClient.agent.count.mockResolvedValue(0);
 };
@@ -264,7 +264,7 @@ describe('Agents API Integration Tests', () => {
   describe('GET /api/v1/agents/:id', () => {
     it('should get agent details (200)', async () => {
       const agent = createMockAgent();
-      mockPrismaClient.agent.findUnique.mockResolvedValue(agent);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(agent);
 
       const response = await request(app)
         .get(`/api/v1/agents/${agent.id}`)
@@ -276,7 +276,7 @@ describe('Agents API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent agent', async () => {
-      mockPrismaClient.agent.findUnique.mockResolvedValue(null);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .get(`/api/v1/agents/${uuidv4()}`)
@@ -293,15 +293,16 @@ describe('Agents API Integration Tests', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should return 403 for agent owned by different user', async () => {
+    it('should return 404 for agent owned by different user (security: hide existence)', async () => {
       const agent = createMockAgent({ userId: uuidv4() }); // Different user
-      mockPrismaClient.agent.findUnique.mockResolvedValue(agent);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(agent);
 
       const response = await request(app)
         .get(`/api/v1/agents/${agent.id}`)
         .set('Authorization', `Bearer ${authToken}`);
 
-      expect(response.status).toBe(403);
+      // Service returns null for non-owner to hide resource existence
+      expect(response.status).toBe(404);
     });
   });
 
@@ -312,7 +313,7 @@ describe('Agents API Integration Tests', () => {
     it('should update agent successfully (200)', async () => {
       const agent = createMockAgent();
       const updatedAgent = { ...agent, name: 'Updated Name' };
-      mockPrismaClient.agent.findUnique.mockResolvedValue(agent);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(agent);
       mockPrismaClient.agent.update.mockResolvedValue(updatedAgent);
 
       const response = await request(app)
@@ -326,7 +327,7 @@ describe('Agents API Integration Tests', () => {
 
     it('should return 400 for empty update body', async () => {
       const agent = createMockAgent();
-      mockPrismaClient.agent.findUnique.mockResolvedValue(agent);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(agent);
 
       const response = await request(app)
         .patch(`/api/v1/agents/${agent.id}`)
@@ -337,7 +338,7 @@ describe('Agents API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent agent', async () => {
-      mockPrismaClient.agent.findUnique.mockResolvedValue(null);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .patch(`/api/v1/agents/${uuidv4()}`)
@@ -354,7 +355,7 @@ describe('Agents API Integration Tests', () => {
   describe('DELETE /api/v1/agents/:id', () => {
     it('should soft delete agent successfully (204)', async () => {
       const agent = createMockAgent();
-      mockPrismaClient.agent.findUnique.mockResolvedValue(agent);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(agent);
       mockPrismaClient.agent.update.mockResolvedValue({ ...agent, deletedAt: new Date() });
 
       const response = await request(app)
@@ -365,7 +366,7 @@ describe('Agents API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent agent', async () => {
-      mockPrismaClient.agent.findUnique.mockResolvedValue(null);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .delete(`/api/v1/agents/${uuidv4()}`)
@@ -374,15 +375,16 @@ describe('Agents API Integration Tests', () => {
       expect(response.status).toBe(404);
     });
 
-    it('should return 403 for agent owned by different user', async () => {
+    it('should return 404 for agent owned by different user (security: hide existence)', async () => {
       const agent = createMockAgent({ userId: uuidv4() });
-      mockPrismaClient.agent.findUnique.mockResolvedValue(agent);
+      mockPrismaClient.agent.findFirst.mockResolvedValue(agent);
 
       const response = await request(app)
         .delete(`/api/v1/agents/${agent.id}`)
         .set('Authorization', `Bearer ${authToken}`);
 
-      expect(response.status).toBe(403);
+      // Service returns null for non-owner to hide resource existence
+      expect(response.status).toBe(404);
     });
 
     it('should return 401 for unauthorized request', async () => {
