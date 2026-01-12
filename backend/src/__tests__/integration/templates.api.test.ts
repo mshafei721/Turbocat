@@ -29,12 +29,13 @@ const mockUser = {
   deletedAt: null,
 };
 
+// Note: Prisma enum values are lowercase due to @map in schema
 const createMockTemplate = (overrides: any = {}) => ({
   id: uuidv4(),
   userId: null,
   name: 'Test Template',
   description: 'A test template',
-  type: 'AGENT',
+  type: 'agent', // lowercase to match Prisma @map
   category: 'automation',
   version: '1.0.0',
   templateData: { agentType: 'CODE', config: {} },
@@ -103,6 +104,7 @@ const mockPrismaClient = {
   },
   template: {
     findUnique: jest.fn<any>(),
+    findFirst: jest.fn<any>().mockResolvedValue(null),
     findMany: jest.fn<any>().mockResolvedValue([]),
     count: jest.fn<any>().mockResolvedValue(0),
     update: jest.fn<any>(),
@@ -168,7 +170,7 @@ const authToken = generateTestToken({ userId: mockUserId, email: mockUser.email,
 const resetMocks = () => {
   jest.clearAllMocks();
   mockPrismaClient.user.findUnique.mockResolvedValue(mockUser);
-  mockPrismaClient.template.findUnique.mockResolvedValue(null);
+  mockPrismaClient.template.findFirst.mockResolvedValue(null);
   mockPrismaClient.template.findMany.mockResolvedValue([]);
   mockPrismaClient.template.count.mockResolvedValue(0);
 };
@@ -231,7 +233,7 @@ describe('Templates API Integration Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.pagination).toHaveProperty('totalItems', 25);
-      expect(response.body.data.pagination).toHaveProperty('currentPage', 2);
+      expect(response.body.data.pagination).toHaveProperty('page', 2);
     });
   });
 
@@ -241,7 +243,7 @@ describe('Templates API Integration Tests', () => {
   describe('GET /api/v1/templates/:id', () => {
     it('should get public template details without auth (200)', async () => {
       const template = createMockTemplate({ isPublic: true });
-      mockPrismaClient.template.findUnique.mockResolvedValue(template);
+      mockPrismaClient.template.findFirst.mockResolvedValue(template);
 
       const response = await request(app).get(`/api/v1/templates/${template.id}`);
 
@@ -251,7 +253,7 @@ describe('Templates API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent template', async () => {
-      mockPrismaClient.template.findUnique.mockResolvedValue(null);
+      mockPrismaClient.template.findFirst.mockResolvedValue(null);
 
       const response = await request(app).get(`/api/v1/templates/${uuidv4()}`);
 
@@ -272,7 +274,7 @@ describe('Templates API Integration Tests', () => {
   // ==========================================================================
   describe('POST /api/v1/templates/:id/instantiate', () => {
     it('should instantiate agent template (201)', async () => {
-      const template = createMockTemplate({ type: 'AGENT', templateData: { agentType: 'code' } });
+      const template = createMockTemplate({ type: 'agent', templateData: { agentType: 'code' } });
       const createdAgent = {
         id: uuidv4(),
         userId: mockUserId,
@@ -282,7 +284,7 @@ describe('Templates API Integration Tests', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      mockPrismaClient.template.findUnique.mockResolvedValue(template);
+      mockPrismaClient.template.findFirst.mockResolvedValue(template);
       mockPrismaClient.template.update.mockResolvedValue({ ...template, usageCount: 1 });
       mockPrismaClient.agent.create.mockResolvedValue(createdAgent);
 
@@ -291,6 +293,7 @@ describe('Templates API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send({ name: 'My Agent' });
 
+      // Verify response
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveProperty('resourceType', 'agent');
@@ -305,7 +308,7 @@ describe('Templates API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent template', async () => {
-      mockPrismaClient.template.findUnique.mockResolvedValue(null);
+      mockPrismaClient.template.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .post(`/api/v1/templates/${uuidv4()}/instantiate`)
@@ -317,7 +320,7 @@ describe('Templates API Integration Tests', () => {
 
     it('should return 400 for invalid name format', async () => {
       const template = createMockTemplate();
-      mockPrismaClient.template.findUnique.mockResolvedValue(template);
+      mockPrismaClient.template.findFirst.mockResolvedValue(template);
 
       const response = await request(app)
         .post(`/api/v1/templates/${template.id}/instantiate`)

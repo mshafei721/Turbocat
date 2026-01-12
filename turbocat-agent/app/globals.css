@@ -93,19 +93,40 @@
   --color-sidebar-border: hsl(var(--sidebar-border));
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
-  /* Border radius (Rounded 10-12px) */
+  /* Border radius (AI Native - 12px default) */
   --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-md: 12px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-2xl: 20px;
   --radius-full: 9999px;
 
+  /* Shadow tokens (AI Native) */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+
+  /* Transition tokens (AI Native) */
+  --transition-base: all 0.2s ease;
+
   /* ==========================================================================
      BRAND COLOR SCALES
      ========================================================================== */
 
-  /* Orange (Primary Brand) */
+  /* Amber/Terracotta (AI Native Primary) */
+  --color-amber-50: #FFFBEB;
+  --color-amber-100: #FEF3C7;
+  --color-amber-200: #FDE68A;
+  --color-amber-300: #FCD34D;
+  --color-amber-400: #FBBF24;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
+  --color-amber-700: #B45309;
+  --color-amber-800: #92400E;
+  --color-amber-900: #78350F;
+  --color-amber-950: #451A03;
+
+  /* Orange (Secondary/Dark Mode Primary) */
   --color-orange-50: #FFF7ED;
   --color-orange-100: #FFEDD5;
   --color-orange-200: #FED7AA;
@@ -118,7 +139,20 @@
   --color-orange-900: #7C2D12;
   --color-orange-950: #431407;
 
-  /* Teal (Success/Verified) */
+  /* Lime/Sage Green (AI Native Accent - Success) */
+  --color-lime-50: #F7FEE7;
+  --color-lime-100: #ECFCCB;
+  --color-lime-200: #D9F99D;
+  --color-lime-300: #BEF264;
+  --color-lime-400: #A3E635;
+  --color-lime-500: #84CC16;
+  --color-lime-600: #65A30D;
+  --color-lime-700: #4D7C0F;
+  --color-lime-800: #3F6212;
+  --color-lime-900: #365314;
+  --color-lime-950: #1A2E05;
+
+  /* Teal (Dark Mode Success) */
   --color-teal-50: #F0FDFA;
   --color-teal-100: #CCFBF1;
   --color-teal-200: #99F6E4;
@@ -144,71 +178,99 @@
   --color-slate-900: #0F172A;
   --color-slate-950: #020617;
 
-  /* Amber (Warning) */
-  --color-amber-500: #F59E0B;
-
   /* Red (Error) */
   --color-red-500: #EF4444;
+  --color-red-600: #DC2626;
 
   /* Blue (Info) */
   --color-blue-500: #3B82F6;
+
+  /* Warm Neutrals (AI Native Backgrounds) */
+  --color-warm-50: #FAF9F7;
+  --color-warm-100: #F5F4F1;
+  --color-warm-200: #ECEAE5;
 }
 
 /* =============================================================================
-   ROOT VARIABLES - Light Mode (rarely used, dark mode is default)
+   ROOT VARIABLES - AI Native Light Mode (Default)
    ============================================================================= */
 :root {
-  --radius: 10px;
+  --radius: 12px;
 
-  /* Light mode colors (fallback) */
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
+  /* AI Native Light Mode - Warm Neutral Backgrounds */
+  /* Primary background: #FAF9F7 (warm neutral) */
+  --background: 40 20% 98%;
+  /* Text: #1E293B (slate-800) for strong contrast */
+  --foreground: 217 33% 17%;
+
+  /* Surface/Cards: #FFFFFF (pure white) */
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  --card-foreground: 217 33% 17%;
+
+  /* Popovers */
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 24.6 95% 53.1%;
+  --popover-foreground: 217 33% 17%;
+
+  /* Primary: #D97706 (terracotta/amber-600) */
+  --primary: 32 95% 44%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
+
+  /* Secondary: #F5F4F1 (warm neutral) */
+  --secondary: 40 20% 96%;
+  --secondary-foreground: 217 33% 17%;
+
+  /* Muted backgrounds */
+  --muted: 40 20% 96%;
+  /* Muted text: #64748B (slate-500) */
   --muted-foreground: 215 16% 47%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
+
+  /* Accent: #65A30D (sage green/lime-600) */
+  --accent: 82 85% 35%;
+  --accent-foreground: 0 0% 100%;
+
+  /* Destructive (error) */
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --success: 166 76% 40%;
-  --success-foreground: 0 0% 100%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 100%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 24.6 95% 53.1%;
 
-  /* Chart colors */
-  --chart-1: 24.6 95% 53.1%;
-  --chart-2: 173 58% 39%;
+  /* Success: #65A30D (sage green) */
+  --success: 82 85% 35%;
+  --success-foreground: 0 0% 100%;
+
+  /* Warning: #F59E0B (amber-500) */
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 0%;
+
+  /* Borders: softer gray */
+  --border: 40 15% 90%;
+  --input: 40 15% 90%;
+
+  /* Focus ring: terracotta */
+  --ring: 32 95% 44%;
+
+  /* Chart colors - AI Native palette */
+  --chart-1: 32 95% 44%;
+  --chart-2: 82 85% 35%;
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
 
-  /* Sidebar */
-  --sidebar: 0 0% 98%;
-  --sidebar-foreground: 240 5.3% 26.1%;
-  --sidebar-primary: 24.6 95% 53.1%;
+  /* Sidebar - warm neutral */
+  --sidebar: 40 20% 98%;
+  --sidebar-foreground: 217 33% 17%;
+  --sidebar-primary: 32 95% 44%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 4.8% 95.9%;
-  --sidebar-accent-foreground: 240 5.9% 10%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 24.6 95% 53.1%;
+  --sidebar-accent: 40 20% 94%;
+  --sidebar-accent-foreground: 217 33% 17%;
+  --sidebar-border: 40 15% 88%;
+  --sidebar-ring: 32 95% 44%;
 }
 
 /* =============================================================================
-   DARK MODE - Primary Theme (Deep Navy Gradient)
+   DARK MODE - AI Native Theme (Deep Navy, Orange & Teal)
    ============================================================================= */
 .dark {
-  /* Background - Deep navy */
-  --background: 222 47% 5%;
+  /* Background - Deep navy #060B14 */
+  --background: 220 39% 4%;
   --foreground: 210 40% 98%;
 
   /* Cards/Surfaces - Slate 800 */
@@ -219,57 +281,57 @@
   --popover: 217 33% 12%;
   --popover-foreground: 210 40% 98%;
 
-  /* Primary - Orange */
-  --primary: 24.6 95% 53.1%;
+  /* Primary - Orange #F97316 */
+  --primary: 22 93% 53%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary */
-  --secondary: 217 33% 17%;
+  /* Secondary - Slate 700 */
+  --secondary: 215 25% 27%;
   --secondary-foreground: 210 40% 98%;
 
-  /* Muted */
+  /* Muted - Slate 800 */
   --muted: 217 33% 17%;
   --muted-foreground: 215 20% 65%;
 
-  /* Accent */
-  --accent: 217 33% 17%;
-  --accent-foreground: 210 40% 98%;
+  /* Accent - Teal #14B8A6 */
+  --accent: 173 80% 40%;
+  --accent-foreground: 0 0% 100%;
 
-  /* Destructive - Red */
-  --destructive: 0 63% 31%;
-  --destructive-foreground: 210 40% 98%;
+  /* Destructive - Red #EF4444 */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
 
-  /* Success - Teal */
-  --success: 166 76% 40%;
+  /* Success - Teal #14B8A6 */
+  --success: 173 80% 40%;
   --success-foreground: 0 0% 100%;
 
-  /* Warning - Amber */
-  --warning: 38 92% 50%;
+  /* Warning - Amber #FBBF24 */
+  --warning: 43 96% 56%;
   --warning-foreground: 0 0% 0%;
 
-  /* Border/Input */
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
+  /* Border/Input - Slate 700 */
+  --border: 215 25% 27%;
+  --input: 215 25% 27%;
 
   /* Focus ring - Orange */
-  --ring: 24.6 95% 53.1%;
+  --ring: 22 93% 53%;
 
-  /* Chart colors */
-  --chart-1: 24.6 95% 53.1%;
-  --chart-2: 173 58% 39%;
-  --chart-3: 197 37% 24%;
-  --chart-4: 43 74% 66%;
-  --chart-5: 27 87% 67%;
+  /* Chart colors - AI Native dark palette */
+  --chart-1: 22 93% 53%;   /* Orange */
+  --chart-2: 173 80% 40%;  /* Teal */
+  --chart-3: 43 96% 56%;   /* Amber */
+  --chart-4: 142 76% 36%;  /* Emerald */
+  --chart-5: 217 91% 60%;  /* Blue */
 
-  /* Sidebar */
-  --sidebar: 222 47% 7%;
+  /* Sidebar - Deep navy with orange accents */
+  --sidebar: 220 39% 4%;
   --sidebar-foreground: 210 40% 98%;
-  --sidebar-primary: 24.6 95% 53.1%;
+  --sidebar-primary: 22 93% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 217 33% 17%;
-  --sidebar-accent-foreground: 210 40% 98%;
-  --sidebar-border: 217 33% 17%;
-  --sidebar-ring: 24.6 95% 53.1%;
+  --sidebar-accent: 173 80% 40%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 215 25% 27%;
+  --sidebar-ring: 22 93% 53%;
 }
 
 /* =============================================================================
@@ -289,6 +351,13 @@
     font-family: 'Satoshi', var(--font-geist-sans), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: 0;
+  }
+
+  /* Heading styles - AI Native (500 weight, 0 letter-spacing) */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 500;
+    letter-spacing: 0;
   }
 
   /* Smooth scrolling */
@@ -337,7 +406,70 @@
   background: radial-gradient(ellipse at top, hsl(222 47% 11%) 0%, hsl(222 47% 5%) 50%, hsl(222 47% 3%) 100%);
 }
 
-/* Glow effects */
+/* AI Native shadow utilities */
+.shadow-ai-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-ai-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-ai-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Hover shadow transitions */
+.hover\:shadow-ai-md:hover {
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-base);
+}
+
+.hover\:shadow-ai-lg:hover {
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition-base);
+}
+
+/* Transition utilities */
+.transition-ai {
+  transition: var(--transition-base);
+}
+
+/* Glow effects - Light mode (terracotta) */
+.glow-primary {
+  box-shadow: 0 0 20px rgb(217 119 6 / 0.25);
+}
+
+.glow-primary-lg {
+  box-shadow: 0 0 40px rgb(217 119 6 / 0.3);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgb(101 163 13 / 0.25);
+}
+
+.glow-accent-lg {
+  box-shadow: 0 0 40px rgb(101 163 13 / 0.3);
+}
+
+/* Glow effects - Dark mode (orange/teal) */
+.dark .glow-primary {
+  box-shadow: 0 0 20px rgb(249 115 22 / 0.3);
+}
+
+.dark .glow-primary-lg {
+  box-shadow: 0 0 40px rgb(249 115 22 / 0.4);
+}
+
+.dark .glow-accent {
+  box-shadow: 0 0 20px rgb(20 184 166 / 0.3);
+}
+
+.dark .glow-accent-lg {
+  box-shadow: 0 0 40px rgb(20 184 166 / 0.4);
+}
+
+/* Legacy glow classes (for backward compatibility) */
 .glow-orange {
   box-shadow: 0 0 20px rgb(249 115 22 / 0.3);
 }
@@ -355,6 +487,23 @@
 }
 
 /* Hover glow effects */
+.hover\:glow-primary:hover {
+  box-shadow: 0 0 30px rgb(217 119 6 / 0.35);
+}
+
+.dark .hover\:glow-primary:hover {
+  box-shadow: 0 0 30px rgb(249 115 22 / 0.4);
+}
+
+.hover\:glow-accent:hover {
+  box-shadow: 0 0 30px rgb(101 163 13 / 0.35);
+}
+
+.dark .hover\:glow-accent:hover {
+  box-shadow: 0 0 30px rgb(20 184 166 / 0.4);
+}
+
+/* Legacy hover glow (backward compatibility) */
 .hover\:glow-orange:hover {
   box-shadow: 0 0 30px rgb(249 115 22 / 0.4);
 }
@@ -451,8 +600,17 @@
   }
 }
 
-/* Pulse animation */
+/* Pulse animation - Light mode (terracotta) */
 @keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgb(217 119 6 / 0.25);
+  }
+  50% {
+    box-shadow: 0 0 40px rgb(217 119 6 / 0.4);
+  }
+}
+
+@keyframes pulse-glow-dark {
   0%, 100% {
     box-shadow: 0 0 20px rgb(249 115 22 / 0.3);
   }
@@ -463,6 +621,10 @@
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.dark .animate-pulse-glow {
+  animation: pulse-glow-dark 2s ease-in-out infinite;
 }
 
 /* Animation utility classes */

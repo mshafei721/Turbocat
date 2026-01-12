@@ -91,7 +91,7 @@ const mockPrismaClient = {
   },
   workflow: {
     findUnique: jest.fn<any>(),
-    findFirst: jest.fn<any>(),
+    findFirst: jest.fn<any>().mockResolvedValue(null),
     findMany: jest.fn<any>().mockResolvedValue([]),
     create: jest.fn<any>(),
     update: jest.fn<any>(),
@@ -189,7 +189,7 @@ const authToken = generateTestToken({ userId: mockUserId, email: mockUser.email,
 const resetMocks = () => {
   jest.clearAllMocks();
   mockPrismaClient.user.findUnique.mockResolvedValue(mockUser);
-  mockPrismaClient.workflow.findUnique.mockResolvedValue(null);
+  mockPrismaClient.workflow.findFirst.mockResolvedValue(null);
   mockPrismaClient.workflow.findMany.mockResolvedValue([]);
   mockPrismaClient.workflow.count.mockResolvedValue(0);
 };
@@ -207,8 +207,10 @@ describe('Workflows API Integration Tests', () => {
 
     it('should create a workflow (201)', async () => {
       const createData = { name: 'Test Workflow', description: 'A test workflow' };
-      const createdWorkflow = createMockWorkflow({ name: createData.name });
+      const createdWorkflow = createMockWorkflow({ name: createData.name, steps: [] });
       mockPrismaClient.workflow.create.mockResolvedValue(createdWorkflow);
+      // Service uses $transaction which calls findUnique at the end
+      mockPrismaClient.workflow.findUnique.mockResolvedValue(createdWorkflow);
 
       const response = await request(app)
         .post(workflowsEndpoint)
@@ -246,7 +248,7 @@ describe('Workflows API Integration Tests', () => {
       const workflow = createMockWorkflow({
         steps: [{ id: uuidv4(), stepKey: 'step_1', stepName: 'Step 1' }],
       });
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(workflow);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(workflow);
 
       const response = await request(app)
         .get(`/api/v1/workflows/${workflow.id}`)
@@ -258,7 +260,7 @@ describe('Workflows API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent workflow', async () => {
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(null);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .get(`/api/v1/workflows/${uuidv4()}`)
@@ -267,15 +269,16 @@ describe('Workflows API Integration Tests', () => {
       expect(response.status).toBe(404);
     });
 
-    it('should return 403 for workflow owned by different user', async () => {
+    it('should return 404 for workflow owned by different user (security: hide existence)', async () => {
       const workflow = createMockWorkflow({ userId: uuidv4() });
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(workflow);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(workflow);
 
       const response = await request(app)
         .get(`/api/v1/workflows/${workflow.id}`)
         .set('Authorization', `Bearer ${authToken}`);
 
-      expect(response.status).toBe(403);
+      // Service returns null for non-owner to hide resource existence
+      expect(response.status).toBe(404);
     });
   });
 
@@ -284,10 +287,12 @@ describe('Workflows API Integration Tests', () => {
   // ==========================================================================
   describe('PATCH /api/v1/workflows/:id', () => {
     it('should update workflow successfully (200)', async () => {
-      const workflow = createMockWorkflow();
-      const updatedWorkflow = { ...workflow, name: 'Updated Name' };
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(workflow);
+      const workflow = createMockWorkflow({ steps: [] });
+      const updatedWorkflow = { ...workflow, name: 'Updated Name', steps: [] };
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(workflow);
       mockPrismaClient.workflow.update.mockResolvedValue(updatedWorkflow);
+      // Service uses $transaction which calls findUnique at the end
+      mockPrismaClient.workflow.findUnique.mockResolvedValue(updatedWorkflow);
 
       const response = await request(app)
         .patch(`/api/v1/workflows/${workflow.id}`)
@@ -308,7 +313,7 @@ describe('Workflows API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent workflow', async () => {
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(null);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .patch(`/api/v1/workflows/${uuidv4()}`)
@@ -328,8 +333,8 @@ describe('Workflows API Integration Tests', () => {
         status: 'active',
         steps: [{ id: uuidv4(), stepKey: 'step_1' }],
       });
-      const execution = createMockExecution(workflow.id);
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(workflow);
+      const execution = createMockExecution(workflow.id as string);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(workflow);
       mockPrismaClient.execution.create.mockResolvedValue(execution);
 
       const response = await request(app)
@@ -344,7 +349,7 @@ describe('Workflows API Integration Tests', () => {
 
     it('should return 400 for inactive workflow', async () => {
       const workflow = createMockWorkflow({ status: 'draft' });
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(workflow);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(workflow);
 
       const response = await request(app)
         .post(`/api/v1/workflows/${workflow.id}/execute`)
@@ -355,7 +360,7 @@ describe('Workflows API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent workflow', async () => {
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(null);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .post(`/api/v1/workflows/${uuidv4()}/execute`)
@@ -373,10 +378,10 @@ describe('Workflows API Integration Tests', () => {
     it('should get execution history (200)', async () => {
       const workflow = createMockWorkflow();
       const executions = [
-        createMockExecution(workflow.id, { status: 'COMPLETED' }),
-        createMockExecution(workflow.id, { status: 'FAILED' }),
+        createMockExecution(workflow.id as string, { status: 'COMPLETED' }),
+        createMockExecution(workflow.id as string, { status: 'FAILED' }),
       ];
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(workflow);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(workflow);
       mockPrismaClient.execution.findMany.mockResolvedValue(executions);
       mockPrismaClient.execution.count.mockResolvedValue(2);
 
@@ -391,7 +396,7 @@ describe('Workflows API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent workflow', async () => {
-      mockPrismaClient.workflow.findUnique.mockResolvedValue(null);
+      mockPrismaClient.workflow.findFirst.mockResolvedValue(null);
 
       const response = await request(app)
         .get(`/api/v1/workflows/${uuidv4()}/executions`)

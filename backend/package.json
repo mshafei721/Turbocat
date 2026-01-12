@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@jest/globals": "^30.2.0",
     "@playwright/test": "^1.57.0",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
