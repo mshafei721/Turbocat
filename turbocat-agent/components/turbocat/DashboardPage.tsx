@@ -89,8 +89,11 @@ export function DashboardPage({ projects = [], className }: DashboardPageProps) 
 
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/tasks/${projectToDelete.id}`, {
+      // Epic 2: Use new Project API
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      const response = await fetch(`${backendUrl}/api/v1/projects/${projectToDelete.id}`, {
         method: 'DELETE',
+        credentials: 'include', // Include cookies for authentication
       })
 
       if (!response.ok) {

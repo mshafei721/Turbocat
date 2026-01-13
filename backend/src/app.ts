@@ -27,9 +27,11 @@ import { swaggerSpec } from './swagger';
 // Route imports
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
+import oauthRoutes from './routes/oauth';
 import usersRoutes from './routes/users';
 import agentsRoutes from './routes/agents';
 import workflowsRoutes from './routes/workflows';
+import projectsRoutes from './routes/projects'; // Epic 2: Project API
 import templatesRoutes from './routes/templates';
 import deploymentsRoutes from './routes/deployments';
 import analyticsRoutes from './routes/analytics';
@@ -134,6 +136,9 @@ apiRouter.get('/', (req: Request, res: Response) => {
 // Authentication routes
 apiRouter.use('/auth', authRoutes);
 
+// OAuth authentication routes
+apiRouter.use('/auth/oauth', oauthRoutes);
+
 // User management routes
 apiRouter.use('/users', usersRoutes);
 
@@ -142,6 +147,9 @@ apiRouter.use('/agents', agentsRoutes);
 
 // Workflow management routes
 apiRouter.use('/workflows', workflowsRoutes);
+
+// Project management routes (Epic 2: wraps workflows with project-centric API)
+apiRouter.use('/projects', projectsRoutes);
 
 // Template management routes
 apiRouter.use('/templates', templatesRoutes);

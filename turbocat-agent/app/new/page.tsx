@@ -3,18 +3,58 @@
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Desktop, DeviceMobile, Sparkle, Rocket } from '@phosphor-icons/react'
+import { ArrowLeft, Desktop, DeviceMobile, Sparkle, Rocket, Brain } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Logo } from '@/components/turbocat/Logo'
 import { PromptInput } from '@/components/turbocat/PromptInput'
 
 type Platform = 'web' | 'mobile' | null
 
+// Available AI models
+const AI_MODELS = [
+  { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (Best)' },
+  { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku (Fast)' },
+  { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Advanced)' },
+]
+
+// Suggested prompts (T2.10)
+const SUGGESTED_PROMPTS = [
+  {
+    title: 'Todo App',
+    prompt: 'Build a simple todo list app with add, delete, and mark as complete functionality',
+    platform: 'web' as const,
+  },
+  {
+    title: 'Weather App',
+    prompt: 'Create a weather app that shows current weather and 5-day forecast using geolocation',
+    platform: 'mobile' as const,
+  },
+  {
+    title: 'Recipe Finder',
+    prompt: 'Build a recipe finder app with search, filters, and save favorite recipes',
+    platform: 'web' as const,
+  },
+  {
+    title: 'Expense Tracker',
+    prompt: 'Create an expense tracking app with categories, charts, and monthly summaries',
+    platform: 'mobile' as const,
+  },
+]
+
 export default function NewProjectPage() {
   const router = useRouter()
   const [platform, setPlatform] = React.useState<Platform>(null)
+  const [selectedModel, setSelectedModel] = React.useState<string>(AI_MODELS[0].value)
   const [prompt, setPrompt] = React.useState('')
   const [isCreating, setIsCreating] = React.useState(false)
 
@@ -33,15 +73,19 @@ export default function NewProjectPage() {
     setIsCreating(true)
 
     try {
-      // Create a new task via API
-      const response = await fetch('/api/tasks', {
+      // Epic 2: Create a new project via Project API
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+      const response = await fetch(`${backendUrl}/api/v1/projects`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({
-          prompt: prompt.trim(),
+          name: prompt.trim().slice(0, 100), // Use first 100 chars as name
+          description: prompt.trim(),
           platform,
+          selectedModel,
         }),
       })
 
@@ -50,9 +94,14 @@ export default function NewProjectPage() {
       }
 
       const data = await response.json()
+      const projectId = data.data?.project?.id
+
+      if (!projectId) {
+        throw new Error('No project ID returned')
+      }
 
       // Navigate to the project workspace
-      router.push(`/project/${data.task.id}`)
+      router.push(`/project/${projectId}`)
     } catch (error) {
       console.error('Error creating project:', error)
       setIsCreating(false)
@@ -64,6 +113,11 @@ export default function NewProjectPage() {
     if (platform) {
       handleCreateProject()
     }
+  }
+
+  const handleSuggestionClick = (suggestion: typeof SUGGESTED_PROMPTS[0]) => {
+    setPrompt(suggestion.prompt)
+    setPlatform(suggestion.platform)
   }
 
   return (
@@ -103,6 +157,32 @@ export default function NewProjectPage() {
             </p>
           </div>
 
+          {/* Suggested Prompts (T2.10) */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-slate-300">
+              Or try one of these ideas
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED_PROMPTS.map((suggestion) => (
+                <Button
+                  key={suggestion.title}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  disabled={isCreating}
+                  className="gap-2 border-slate-700 bg-slate-900/50 text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+                  {suggestion.platform === 'web' ? (
+                    <Desktop size={14} />
+                  ) : (
+                    <DeviceMobile size={14} />
+                  )}
+                  {suggestion.title}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Prompt Input */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-300">
@@ -115,6 +195,35 @@ export default function NewProjectPage() {
               placeholder="Describe your app idea..."
               disabled={isCreating}
             />
+          </div>
+
+          {/* Model Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="model-select" className="text-sm font-medium text-slate-300">
+              AI Model
+            </Label>
+            <Select value={selectedModel} onValueChange={setSelectedModel} disabled={isCreating}>
+              <SelectTrigger
+                id="model-select"
+                className="w-full border-slate-700 bg-slate-900/50 text-white hover:bg-slate-800/50"
+              >
+                <div className="flex items-center gap-2">
+                  <Brain size={16} className="text-orange-500" />
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="border-slate-700 bg-slate-900">
+                {AI_MODELS.map((model) => (
+                  <SelectItem
+                    key={model.value}
+                    value={model.value}
+                    className="text-white hover:bg-slate-800 focus:bg-slate-800"
+                  >
+                    {model.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Platform Selection */}

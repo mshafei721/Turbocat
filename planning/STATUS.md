@@ -1,275 +1,228 @@
-# Project Status
+# IMPLEMENTATION STATUS
+## Turbocat - 6 Epic Brownfield Implementation
 
-## Current Phase: Phase 5 - Agent SDK Refactoring (COMPLETED)
-
----
-
-# Phase 5: Agent SDK Refactoring - Status
-
-## Task Status
-
-| Task | Status | Notes |
-|------|--------|-------|
-| 1. Download Official Anthropic Skills | DONE | 16 skills in .claude/skills/anthropic/ |
-| 2. Install Agent SDK in Backend | DONE | @anthropic-ai/claude-agent-sdk added, wrapper created |
-| 3. Install Agent SDK in Frontend | DONE | SDK hooks and client utilities created |
-| 4. Configure Skills Loading | DONE | .claude/settings.json with permissions |
-| 5. Railway Deployment Prep | DONE | .env.template files updated |
-| 6. Validation | DONE | Type checks pass for both frontend and backend |
-
-## Files Created
-
-### Official Anthropic Skills (16)
-- `.claude/skills/anthropic/algorithmic-art/SKILL.md`
-- `.claude/skills/anthropic/brand-guidelines/SKILL.md`
-- `.claude/skills/anthropic/canvas-design/SKILL.md`
-- `.claude/skills/anthropic/doc-coauthoring/SKILL.md`
-- `.claude/skills/anthropic/docx/SKILL.md`
-- `.claude/skills/anthropic/frontend-design/SKILL.md`
-- `.claude/skills/anthropic/internal-comms/SKILL.md`
-- `.claude/skills/anthropic/mcp-builder/SKILL.md`
-- `.claude/skills/anthropic/pdf/SKILL.md`
-- `.claude/skills/anthropic/pptx/SKILL.md`
-- `.claude/skills/anthropic/skill-creator/SKILL.md`
-- `.claude/skills/anthropic/slack-gif-creator/SKILL.md`
-- `.claude/skills/anthropic/theme-factory/SKILL.md`
-- `.claude/skills/anthropic/web-artifacts-builder/SKILL.md`
-- `.claude/skills/anthropic/webapp-testing/SKILL.md`
-- `.claude/skills/anthropic/xlsx/SKILL.md`
-
-### Backend Agent SDK
-- `backend/src/services/agent-sdk/index.ts` - Main SDK wrapper
-- `backend/src/services/agent-sdk/types.ts` - Type definitions
-- `backend/src/services/agent-sdk/config.ts` - Configuration
-- `backend/src/types/claude-agent-sdk.d.ts` - Type declarations
-
-### Frontend Agent SDK
-- `turbocat-agent/lib/agent-sdk/index.ts` - Main exports
-- `turbocat-agent/lib/agent-sdk/types.ts` - Type definitions
-- `turbocat-agent/lib/agent-sdk/config.ts` - Configuration
-- `turbocat-agent/lib/agent-sdk/client.ts` - React hooks (useAgentQuery, useAgentStream, useSkills)
-
-### Configuration
-- `.claude/settings.json` - Skills and permissions configuration
-- `turbocat-agent/.env.template` - Frontend environment template
-
-### Modified Files
-- `backend/package.json` - Added @anthropic-ai/claude-agent-sdk
-- `turbocat-agent/package.json` - Added @anthropic-ai/claude-agent-sdk
-- `backend/.env.example` - Updated with Agent SDK configuration
-
-## Execution Log
-
-### 2026-01-10
-- Created planning files for Phase 5
-- Downloaded all 16 official Anthropic skills from github.com/anthropics/skills
-- Created backend Agent SDK wrapper with executeAgentQuery, listAvailableSkills functions
-- Created frontend Agent SDK with React hooks for query, streaming, and skill fetching
-- Created .claude/settings.json with settingSources: ["project"] and Skill in allowedTools
-- Updated environment templates for Railway deployment
-- Validation passed: Frontend and backend type checks pass
-
-## Next Steps
-1. Run `pnpm install` in both frontend and backend to install the SDK
-2. Configure ANTHROPIC_API_KEY in environment
-3. Test skill loading and agent queries
+**Document Version:** 1.0
+**Last Updated:** 2026-01-12
+**Current Phase:** Planning Complete - Ready for Implementation
 
 ---
 
-# Phase 4: Workspace Enhancement - Status
+## Overall Progress
 
-## Task Status
-
-| Task | Status | Notes |
-|------|--------|-------|
-| 1. Model Selector Component | DONE | ModelSelector.tsx with dropdown, model list, PRO badges |
-| 2. Feature Icons Toolbar | DONE | FeatureToolbar.tsx with 6 feature toggles |
-| 3. Functional Attachment Buttons | DONE | useAttachments hook, AttachmentPreview component |
-| 4. Dynamic Suggestions | DONE | useDynamicSuggestions hook, SuggestionPills component |
-| 5. Validation | DONE | Type check passes, 139 component tests pass |
-
-## Files Created
-
-### Components
-- `components/turbocat/ModelSelector.tsx` - Model selection dropdown with GPT-4o, Claude models
-- `components/turbocat/FeatureToolbar.tsx` - Feature toggle toolbar (web search, code, DB, etc.)
-- `components/turbocat/AttachmentPreview.tsx` - Preview grid for attached images
-- `components/turbocat/SuggestionPills.tsx` - Dynamic suggestion pills with categories
-
-### Hooks
-- `lib/hooks/use-attachments.ts` - File attachment management with drag-drop support
-- `lib/hooks/use-dynamic-suggestions.ts` - Categorized suggestion generation
-
-### Modified
-- `components/turbocat/PromptInput.tsx` - Integrated attachments, voice toggle, dynamic suggestions
-
-## Execution Log
-
-### 2026-01-10
-- Created ModelSelector component with 4 AI models (GPT-4o, GPT-4o Mini, Claude 3.5 Sonnet, Claude 3.5 Haiku)
-- Created FeatureToolbar component with 6 features (Web Search, Code Interpreter, File Analysis, Database, Agents, Auto)
-- Created useAttachments hook for image upload with preview, drag-drop, and validation
-- Created AttachmentPreview component for displaying attached files
-- Created useDynamicSuggestions hook with 4 categories (Apps, Productivity, Social, E-commerce)
-- Created SuggestionPills component with category tabs and shuffle functionality
-- Updated PromptInput to integrate attachments and voice input toggles
-- Validation passed: Type check OK, 139/139 component tests pass
+| Epic | Tasks | Status | Progress |
+|------|-------|--------|----------|
+| Epic 1: Authentication & OAuth | 8 | TODO | 0/8 (0%) |
+| Epic 2: Dashboard & Projects | 31 | TODO | 0/31 (0%) |
+| Epic 3: Editing & Iteration Tools | 7 | TODO | 0/7 (0%) |
+| Epic 4: Publishing Flow | 30 | TODO | 0/30 (0%) |
+| Epic 5: Settings & Account | 6 | TODO | 0/6 (0%) |
+| Epic 6: Referral & Monetization | 8 | TODO | 0/8 (0%) |
+| **TOTAL** | **90 tasks** | **TODO** | **0/90 (0%)** |
 
 ---
 
-# Phase 3: Database & Backend - Status
+## EPIC 1: Authentication & OAuth (P0, 3-4 Days)
 
-## Task Status
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T1.1 | Prisma Schema Migration for OAuth | TODO | 2h | Add oauth fields to User model |
+| T1.2 | OAuth Service Implementation | TODO | 4h | Install Passport.js, create OAuthService |
+| T1.3 | OAuth Auth Routes | TODO | 3h | Add /api/v1/auth/oauth routes |
+| T1.4 | OAuth Middleware & Security | TODO | 2h | CSRF protection, rate limiting |
+| T1.5 | OAuth Button Components | TODO | 2h | Create OAuthButton component |
+| T1.6 | OAuth Callback Page | TODO | 2h | Create /app/(auth)/oauth/callback |
+| T1.7 | Settings OAuth Connection UI | TODO | 2h | OAuth management in settings |
+| T1.8 | OAuth Integration Tests | TODO | 3h | Unit + integration + manual tests |
 
-| Task | Status | Notes |
-|------|--------|-------|
-| 1. Credits System Schema | DONE | credits, creditTransactions tables |
-| 2. Referral System Schema | DONE | referrals, referralCodes tables |
-| 3. Promo Code System Schema | DONE | promoCodes, promoCodeRedemptions tables |
-| 4. Credits API Endpoints | DONE | /api/credits, /api/credits/transactions |
-| 5. Referrals API Endpoints | DONE | /api/referrals (GET/POST) |
-| 6. Promo Codes API Endpoints | DONE | /api/promo-codes, /api/promo-codes/validate |
-| 7. Validation | DONE | Type check passes |
-
-## Files Created
-
-### Database Schema (lib/db/schema.ts)
-- `credits` - User credit balances
-- `creditTransactions` - Credit transaction history
-- `referrals` - Referral relationships
-- `referralCodes` - User referral codes
-- `promoCodes` - Promo code definitions
-- `promoCodeRedemptions` - Redemption tracking
-
-### Service Layer (lib/db/credits/index.ts)
-- `getOrCreateUserCredits()` - Get/create user credits record
-- `getUserCreditBalance()` - Get balance
-- `addCredits()` - Add credits with transaction
-- `deductCredits()` - Deduct credits with transaction
-- `getCreditTransactions()` - Get transaction history
-- `getOrCreateReferralCode()` - Generate user referral code
-- `processReferralSignup()` - Process referral with credit awards
-- `getUserReferralStats()` - Get referral statistics
-- `validatePromoCode()` - Validate promo code
-- `redeemPromoCode()` - Redeem promo code for credits
-
-### API Routes
-- `app/api/credits/route.ts` - GET credit balance
-- `app/api/credits/transactions/route.ts` - GET transaction history
-- `app/api/referrals/route.ts` - GET/POST referral code
-- `app/api/promo-codes/route.ts` - GET/POST promo codes
-- `app/api/promo-codes/validate/route.ts` - POST validate code
-
-## Execution Log
-
-### 2026-01-10
-- Created credits, referrals, and promo code database schemas
-- Implemented credit service layer with all CRUD operations
-- Created API endpoints for credits, referrals, and promo codes
-- Type check passes (only pre-existing MockSkillRegistry errors)
+**Epic Status:** TODO (0/8 complete, 0%)
 
 ---
 
-# Phase 2: Authentication Expansion - Status
+## EPIC 2: Dashboard & Projects (P1, 10-15 Days)
 
-## Task Status
+### Phase 1: Core Dashboard (6 tasks)
 
-| Task | Status | Notes |
-|------|--------|-------|
-| 1. Update DB Schema | DONE | Added 'google' and 'apple' to provider enum |
-| 2. Google OAuth Routes | DONE | /api/auth/signin/google, /api/auth/callback/google |
-| 3. Apple OAuth Routes | DONE | /api/auth/signin/apple, /api/auth/callback/apple |
-| 4. Session Creation | DONE | create-google.ts, create-apple.ts |
-| 5. Update AuthPage.tsx | DONE | Conditional rendering based on enabled providers |
-| 6. Update providers.ts | DONE | Added google and apple to getEnabledAuthProviders |
-| 7. Validation | DONE | Type check and tests pass (749/749) |
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T2.1 | Workflow Model Extension | TODO | 3h | Add projectName, platform fields |
+| T2.2 | ChatMessage Model Creation | TODO | 2h | New ChatMessage model |
+| T2.3 | Project API Wrapper | TODO | 4h | Create /api/v1/projects routes |
+| T2.4 | Chat History API | TODO | 3h | GET/POST chat endpoints |
+| T2.5 | Dashboard UI Redesign | TODO | 8h | Grid layout with ProjectCard |
+| T2.6 | Project Search & Filtering | TODO | 4h | Client-side filtering |
 
-## Files Created/Modified
+### Phase 2: Project Creation (4 tasks)
 
-### New Files
-- `lib/session/create-google.ts` - Google session creation
-- `lib/session/create-apple.ts` - Apple session creation
-- `app/api/auth/signin/google/route.ts` - Google OAuth initiation
-- `app/api/auth/callback/google/route.ts` - Google OAuth callback
-- `app/api/auth/signin/apple/route.ts` - Apple OAuth initiation
-- `app/api/auth/callback/apple/route.ts` - Apple OAuth callback (POST for form_post)
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T2.7 | New Project Page | TODO | 6h | Large prompt input, selectors |
+| T2.8 | Project Creation Service | TODO | 5h | POST handler + BullMQ job |
+| T2.9 | Loading & Redirect | TODO | 2h | Progress polling |
+| T2.10 | Suggested Prompts | TODO | 3h | Horizontal chip row |
 
-### Modified Files
-- `lib/db/schema.ts` - Added 'google' and 'apple' to provider enum
-- `lib/session/types.ts` - Added AuthProvider type with google/apple
-- `lib/db/users.ts` - Updated getUserByExternalId to support all providers
-- `lib/auth/providers.ts` - Already had google/apple support
-- `components/turbocat/AuthPage.tsx` - Connected buttons to OAuth routes
+### Phase 3: Chat Persistence (3 tasks)
 
-## Environment Variables Required
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T2.11 | ChatPanel Component | TODO | 8h | Message display with markdown |
+| T2.12 | ChatInput Component | TODO | 4h | Auto-resize textarea |
+| T2.13 | Chat WebSocket Integration | TODO | 4h | Socket.IO setup |
 
-For Google OAuth:
-- `GOOGLE_CLIENT_ID` - Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+### Phase 4: Real-Time Preview (6 tasks)
 
-For Apple OAuth:
-- `APPLE_CLIENT_ID` - Apple Service ID
-- `APPLE_CLIENT_SECRET` - Apple client secret (JWT)
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T2.14 | Preview Service Setup | TODO | 8h | Code bundling + caching |
+| T2.15 | Expo Snack Integration | TODO | 8h | Expo Snack API |
+| T2.16 | MobilePreview Component | TODO | 8h | iPhone frame + loading states |
+| T2.17 | Device Frame Selector | TODO | 2h | iPhone/Pixel options |
+| T2.18 | Expo Go QR Code | TODO | 3h | QR code modal |
+| T2.19 | Preview Update WebSocket | TODO | 3h | Real-time preview updates |
 
-## Execution Log
+### Phase 5: Polish & Testing (4 tasks)
 
-### 2026-01-10
-- Phase 2 Authentication Expansion completed
-- Created Google OAuth routes (signin + callback with PKCE)
-- Created Apple OAuth routes (signin + callback with form_post)
-- Created session creation functions for Google and Apple
-- Updated AuthProvider type to support all 4 providers
-- Updated AuthPage.tsx with conditional provider buttons
-- Updated ProfilePage.tsx to use AuthProvider type
-- Validation passed: 749/749 tests, type check OK (only pre-existing MockSkillRegistry errors)
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T2.20 | Loading States | TODO | 3h | Skeletons, spinners |
+| T2.21 | Error Handling | TODO | 3h | Clear error messages |
+| T2.22 | Performance Optimization | TODO | 3h | Minification, caching |
+| T2.23 | Integration Testing | TODO | 3h | E2E test full flow |
+
+**Epic Status:** TODO (0/31 complete, 0%)
 
 ---
 
-# Phase 1: Foundation Fixes - Status
+## EPIC 3: Editing & Iteration Tools (P1, 3-5 Days)
 
-## Phase Status: COMPLETED
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T3.1 | Suggestion Service | TODO | 6h | Contextual analysis |
+| T3.2 | Suggestions API | TODO | 2h | GET /suggestions with caching |
+| T3.3 | SuggestedPrompts Component | TODO | 6h | Dynamic chip row |
+| T3.4 | Testing | TODO | 2h | Starter + contextual tests |
+| T3.5 | AdvancedToolbar Component | TODO | 6h | 12 icons with tooltips |
+| T3.6 | Configuration Panels | TODO | 8h | 12 panels (Image, Audio, API, etc.) |
+| T3.7 | Keyboard Shortcuts | TODO | 2h | Cmd+Shift+<Key> shortcuts |
 
-## Task Status
+**Epic Status:** TODO (0/7 complete, 0%)
 
-| Task | Status | Notes |
-|------|--------|-------|
-| 1. Security - Credential Rotation | USER ACTION | Requires user to revoke/regenerate credentials |
-| 2. Dashboard Layout Refactor | DONE | Sidebar already in DashboardLayoutClient.tsx |
-| 3. Fix Broken Navigation Links | DONE | LandingNav/Footer already cleaned up |
-| 4. Fix Auth UI Broken Links | DONE | forgot-password link already commented out |
-| 5. Validation | DONE | Component tests pass (121/121) |
+---
 
-## Execution Log
+## EPIC 4: Publishing Flow (P2, 12-18 Days)
 
-### 2026-01-09
-- Created planning files (PLAN.md, TASKS.md, STATUS.md, DECISIONS.md)
-- Awaiting user approval to proceed
+### Phase 1: Apple Developer Integration (10 tasks)
 
-### 2026-01-10
-- Phase 5 Publish Flow completed (PublishModal, ShareModal)
-- Skills routes implemented (/skills/[slug], /skills/[slug]/logs, /skills/new)
-- Navigation link fixes committed and pushed
-- Phase 1 validation completed:
-  - Dashboard layout: Already refactored (DashboardLayoutClient.tsx has sidebar)
-  - Landing page links: Already fixed (navLinks empty, footer cleaned)
-  - Auth UI links: Already fixed (forgot-password commented out)
-  - Component tests: 121 passed, 0 failed
-  - Pre-existing issues: Type errors in test mocks (MockSkillRegistry), lint errors in third-party code
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T4.1 | Apple Service Setup | TODO | 4h | JWT generation |
+| T4.2 | Credential Storage | TODO | 3h | AES-256 encryption |
+| T4.3 | Apple API Integration | TODO | 6h | createApp, uploadBuild, submitForReview |
+| T4.4 | JWT Generation | TODO | 2h | ES256 algorithm |
+| T4.5 | App Creation | TODO | 4h | Unique bundle ID generation |
+| T4.6 | Build Upload | TODO | 6h | IPA upload via Transporter |
+| T4.7 | Submission | TODO | 4h | Collect metadata, submit |
+| T4.8 | Status Polling | TODO | 3h | Poll every 30s |
+| T4.9 | Error Handling | TODO | 4h | Comprehensive error handling |
+| T4.10 | Testing | TODO | 4h | Real Apple account test |
 
-## Pre-existing Issues (Not blocking Phase 1)
+### Phase 2: Expo Build Integration (8 tasks)
 
-### Type Errors (4)
-- MockSkillRegistry missing `mapToSkillDefinition` method in test files
-- Files: api-integration.test.ts, database-design.test.ts, skills.test.ts, supabase-setup.test.ts
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T4.11 | Expo Service Setup | TODO | 4h | ExpoService with build API |
+| T4.12 | Expo Token Validation | TODO | 3h | Validate access tokens |
+| T4.13 | Build Triggering | TODO | 5h | Trigger EAS builds |
+| T4.14 | Status Polling | TODO | 3h | Poll build status |
+| T4.15 | Artifact Download | TODO | 4h | Download IPA |
+| T4.16 | Error Handling | TODO | 3h | Build failure recovery |
+| T4.17 | Webhook Integration | TODO | 6h | Expo webhook endpoint |
+| T4.18 | Testing | TODO | 4h | Full Expo build test |
 
-### Lint Errors (216)
-- Mostly in node_modules/third-party bundled code
-- Template files using `<img>` instead of Next.js `<Image>`
-- ESLint rule definitions not found
+### Phase 3: Publishing UI (8 tasks)
+
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T4.19 | Publishing Modal | TODO | 6h | Multi-step modal |
+| T4.20 | Prerequisites Checklist | TODO | 4h | Validation checks |
+| T4.21 | Apple Credentials Form | TODO | 5h | Team ID, Key ID, Private Key |
+| T4.22 | Expo Token Form | TODO | 3h | Expo access token input |
+| T4.23 | App Details Form | TODO | 6h | Name, icon, description |
+| T4.24 | Icon Upload | TODO | 3h | 1024x1024 PNG |
+| T4.25 | Progress Tracking | TODO | 3h | Real-time progress bar |
+| T4.26 | Success/Error States | TODO | 2h | Clear messaging |
+
+### Phase 4: Testing & Polish (4 tasks)
+
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T4.27 | End-to-End Testing | TODO | 6h | Full publishing flow |
+| T4.28 | Error Handling | TODO | 4h | All error paths |
+| T4.29 | UI Polish | TODO | 3h | Visual improvements |
+| T4.30 | Production Validation | TODO | 3h | Real apps published |
+
+**Epic Status:** TODO (0/30 complete, 0%)
+
+---
+
+## EPIC 5: Settings & Account Management (P2, 2-3 Days)
+
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T5.1 | User Update API | TODO | 3h | PATCH /api/v1/users/:id |
+| T5.2 | Avatar Upload | TODO | 3h | S3/R2 integration |
+| T5.3 | Email Verification | TODO | 2h | Token generation |
+| T5.4 | Settings Page | TODO | 6h | 4 tabs (Profile, Security, OAuth, Danger Zone) |
+| T5.5 | Account Deletion Flow | TODO | 2h | Confirmation modal, soft delete |
+| T5.6 | Settings Testing | TODO | 4h | All features tested |
+
+**Epic Status:** TODO (0/6 complete, 0%)
+
+---
+
+## EPIC 6: Referral & Monetization (P3, 4-5 Days)
+
+| Task ID | Description | Status | Effort | Notes |
+|---------|-------------|--------|--------|-------|
+| T6.1 | Referral Code Generation | TODO | 4h | Unique 8-char codes |
+| T6.2 | Referral Tracking | TODO | 6h | Cookie-based tracking |
+| T6.3 | Reward System | TODO | 4h | Free month + 20% discount |
+| T6.4 | Referral API | TODO | 2h | GET/POST referral endpoints |
+| T6.5 | Referral Page | TODO | 8h | Link display, stats |
+| T6.6 | Referral Link Handling | TODO | 2h | Parse ?ref= query param |
+| T6.7 | Notifications | TODO | 2h | Email + in-app badges |
+| T6.8 | Referral Testing | TODO | 4h | Full flow + abuse prevention |
+
+**Epic Status:** TODO (0/8 complete, 0%)
+
+---
 
 ## Blockers
-- Task 1 (Security) requires user action to revoke/regenerate credentials
+
+**None currently.**
+
+All epics are in planning phase. Ready to begin implementation after user approval.
+
+---
+
+## Critical Path
+
+The following tasks are on the critical path (must complete before others can start):
+
+1. **T1.1-T1.3** (Epic 1 OAuth backend) → Blocks Epic 5 Settings OAuth management
+2. **T2.1-T2.3** (Epic 2 Core backend) → Blocks all other Epic 2 tasks
+3. **T2.14-T2.15** (Epic 2 Preview services) → Blocks Epic 2 preview UI tasks
+4. **T4.1-T4.10** (Epic 4 Apple integration) → Blocks Epic 4 Expo + Publishing UI
+5. **T5.1** (Epic 5 User API) → Blocks Epic 6 Referral (needs referralCode field)
+
+---
 
 ## Next Steps
-1. User completes credential rotation (Task 1)
-2. Proceed to Phase 2: Authentication Expansion (Google/Apple OAuth)
+
+1. ✅ Planning complete
+2. ⏳ **User approval required** - Review PLAN.md, TASKS.md, DECISIONS.md
+3. ⏳ Begin Epic 1: Authentication & OAuth (T1.1)
+
+---
+
+**Document Status:** APPROVED (pending user review)
+**Last Updated:** 2026-01-12

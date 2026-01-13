@@ -160,9 +160,13 @@ model User {
   avatarUrl       String?   @map("avatar_url")
   role            UserRole  @default(USER)
   isActive        Boolean   @default(true) @map("is_active")
-  emailVerified   Boolean   @default(false) @map("email_verified")
-  emailVerifiedAt DateTime? @map("email_verified_at")
-  lastLoginAt     DateTime? @map("last_login_at")
+  emailVerified      Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt    DateTime? @map("email_verified_at")
+  oauthProvider      String?   @map("oauth_provider") @db.VarChar(50)
+  oauthId            String?   @map("oauth_id") @db.VarChar(255)
+  oauthAccessToken   String?   @map("oauth_access_token")
+  oauthRefreshToken  String?   @map("oauth_refresh_token")
+  lastLoginAt        DateTime? @map("last_login_at")
   preferences     Json      @default("{}")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
@@ -179,6 +183,7 @@ model User {
 
   @@index([email])
   @@index([role])
+  @@index([oauthProvider, oauthId])
   @@index([createdAt(sort: Desc)])
   @@schema("backend")
   @@map("users")
@@ -267,17 +272,26 @@ model Workflow {
   tags                 String[]       @default([])
   isPublic             Boolean        @default(false) @map("is_public")
 
+  // Epic 2: Project fields
+  projectName          String?        @map("project_name") @db.VarChar(255)
+  platform             String?        @db.VarChar(50) // 'web' | 'mobile' | 'both'
+  selectedModel        String?        @map("selected_model") @db.VarChar(100)
+  thumbnailUrl         String?        @map("thumbnail_url")
+  previewCode          String?        @map("preview_code") @db.Text
+  previewError         String?        @map("preview_error") @db.Text
+
   createdAt            DateTime       @default(now()) @map("created_at")
   updatedAt            DateTime       @updatedAt @map("updated_at")
   deletedAt            DateTime?      @map("deleted_at")
 
   // Relations
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent      Workflow?      @relation("WorkflowVersions", fields: [parentId], references: [id], onDelete: SetNull)
-  versions    Workflow[]     @relation("WorkflowVersions")
-  steps       WorkflowStep[]
-  executions  Execution[]
-  deployments Deployment[]
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Workflow?      @relation("WorkflowVersions", fields: [parentId], references: [id], onDelete: SetNull)
+  versions     Workflow[]     @relation("WorkflowVersions")
+  steps        WorkflowStep[]
+  executions   Execution[]
+  deployments  Deployment[]
+  chatMessages ChatMessage[] // Epic 2: Chat history
 
   @@index([userId])
   @@index([status])
@@ -556,4 +570,26 @@ model AuditLog {
   @@index([createdAt(sort: Desc)])
   @@schema("backend")
   @@map("audit_logs")
+}
+
+/// ChatMessage model - persistent chat history for projects
+/// Epic 2: Dashboard & Projects
+model ChatMessage {
+  id         String   @id @default(uuid()) @db.Uuid
+  workflowId String   @map("workflow_id") @db.Uuid
+  role       String   @db.VarChar(20) // 'user' | 'assistant' | 'system'
+  content    String   @db.Text
+
+  // Optional metadata
+  metadata   Json     @default("{}") @db.JsonB
+  toolCalls  Json     @default("[]") @map("tool_calls") @db.JsonB
+
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId, createdAt])
+  @@schema("backend")
+  @@map("chat_messages")
 }
