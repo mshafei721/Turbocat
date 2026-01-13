@@ -5,11 +5,12 @@
  * Projects are exposed as a project-centric API wrapper around Workflows.
  *
  * Endpoints:
- * - GET    /projects        - List projects (paginated, filtered, sorted)
- * - GET    /projects/:id    - Get project by ID
- * - POST   /projects        - Create a new project
- * - PATCH  /projects/:id    - Update a project
- * - DELETE /projects/:id    - Soft delete a project
+ * - GET    /projects                - List projects (paginated, filtered, sorted)
+ * - GET    /projects/:id            - Get project by ID
+ * - POST   /projects                - Create a new project
+ * - PATCH  /projects/:id            - Update a project
+ * - DELETE /projects/:id            - Soft delete a project
+ * - GET    /projects/:id/suggestions - Get AI suggestions for project (Epic 3)
  *
  * @module routes/projects
  */
@@ -26,11 +27,13 @@ import {
   CreateProjectInput,
   UpdateProjectInput,
 } from '../services/project.service';
+import { getSuggestions, Suggestion } from '../services/suggestion.service';
 import { requireAuth } from '../middleware/auth';
 import { createSuccessResponse } from '../middleware/errorHandler';
 import { ApiError } from '../utils/ApiError';
 import { requireStringParam } from '../utils/params';
 import { logger } from '../lib/logger';
+import { setWithExpiry, getAndParse } from '../lib/redis';
 import chatRoutes from './chat'; // Epic 2: Chat history routes
 
 const router = Router();
@@ -257,6 +260,68 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response, next: Nex
     next(error);
   }
 });
+
+/**
+ * GET /projects/:id/suggestions
+ * Get AI-powered suggestions for the next iteration
+ * Epic 3: Editing & Iteration Tools
+ *
+ * Returns contextual suggestions based on project state:
+ * - Starter suggestions for new projects (<= 1 message)
+ * - Feature/design suggestions for existing projects
+ *
+ * Response includes Redis caching (5 min TTL) for performance (<100ms target)
+ */
+router.get(
+  '/:id/suggestions',
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
+      const projectId = requireStringParam(req.params.id, 'id');
+
+      // Generate cache key scoped to user + project
+      const cacheKey = `suggestions:${user.userId}:${projectId}`;
+
+      // Check Redis cache first
+      const cached = await getAndParse<Suggestion[]>(cacheKey);
+      if (cached) {
+        logger.debug(`[ProjectRoutes] Cache hit for suggestions ${projectId}`);
+        res.json(
+          createSuccessResponse(
+            {
+              suggestions: cached,
+            },
+            req.requestId || 'unknown',
+          ),
+        );
+        return;
+      }
+
+      // Cache miss - fetch suggestions
+      logger.debug(`[ProjectRoutes] Cache miss for suggestions ${projectId}`);
+      const suggestions = await getSuggestions(user.userId, projectId);
+
+      // Store in cache with 5 minute TTL (300 seconds)
+      await setWithExpiry(cacheKey, suggestions, 300);
+
+      logger.info(
+        `[ProjectRoutes] Generated ${suggestions.length} suggestions for project ${projectId}`,
+      );
+
+      res.json(
+        createSuccessResponse(
+          {
+            suggestions,
+          },
+          req.requestId || 'unknown',
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // =============================================================================
 // NESTED ROUTES

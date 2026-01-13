@@ -14,6 +14,8 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ModelSelector } from './ModelSelector'
 import { FeatureToolbar } from './FeatureToolbar'
+import { SuggestedPrompts } from './SuggestedPrompts'
+import { AdvancedToolbar } from './AdvancedToolbar'
 import {
   Tooltip,
   TooltipContent,
@@ -38,6 +40,8 @@ interface WorkspaceChatProps {
   selectedModel?: string
   activeFeatures?: string[]
   className?: string
+  projectId?: string
+  platform?: 'web' | 'mobile'
 }
 
 export function WorkspaceChat({
@@ -49,6 +53,8 @@ export function WorkspaceChat({
   selectedModel,
   activeFeatures = [],
   className,
+  projectId,
+  platform = 'web',
 }: WorkspaceChatProps) {
   const [input, setInput] = React.useState('')
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -222,6 +228,22 @@ export function WorkspaceChat({
               </div>
             </div>
           </form>
+
+          {/* Epic 3: Suggested Prompts */}
+          {projectId && (
+            <SuggestedPrompts
+              projectId={projectId}
+              onSelect={(prompt) => setInput(prompt)}
+            />
+          )}
+
+          {/* Epic 3: Advanced Toolbar */}
+          {projectId && (
+            <AdvancedToolbar
+              platform={platform}
+              onInsert={(prompt) => setInput(prompt)}
+            />
+          )}
 
           {/* Hint */}
           <p className="text-xs text-slate-500 text-center">

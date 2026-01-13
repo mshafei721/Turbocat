@@ -336,6 +336,8 @@ export function ProjectWorkspace({ projectId }: ProjectWorkspaceProps) {
             messages={messages}
             isLoading={isSending || isProcessing}
             onSendMessage={handleSendMessage}
+            projectId={task.id}
+            platform={task.platform}
           />
         </div>
 
