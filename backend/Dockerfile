@@ -33,14 +33,17 @@
 # -----------------------------------------------------------------------------
 FROM node:20-alpine AS builder
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma/
 
 # Install dependencies (including devDependencies for build)
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -58,7 +61,7 @@ COPY . .
 COPY .claude/ ./.claude/ 2>/dev/null || true
 
 # Generate Prisma client and build TypeScript
-RUN npm run build
+RUN pnpm run build
 
 # -----------------------------------------------------------------------------
 # Stage 2: Production Runner
@@ -111,4 +114,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health/live || exit 1
 
 # Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/server.js"]
