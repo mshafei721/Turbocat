@@ -3,28 +3,13 @@
 # =============================================================================
 #
 # Multi-stage build for production deployment with Claude Agent SDK support.
+# Works from monorepo root when deployed via Railway
 #
 # Features:
 # - Bundles .claude/ directory with skills for SDK filesystem requirements
 # - Optimized for container size with multi-stage build
 # - Supports both persistent and ephemeral sandbox modes
 # - Includes health checks and graceful shutdown handling
-#
-# Build:
-#   docker build -t turbocat-backend .
-#
-# Run:
-#   docker run -p 3001:3001 \
-#     -e ANTHROPIC_API_KEY=your-key \
-#     -e DATABASE_URL=your-db-url \
-#     -e REDIS_URL=redis://redis:6379 \
-#     turbocat-backend
-#
-# For persistent sandboxes, mount a volume:
-#   docker run -p 3001:3001 \
-#     -v turbocat-sandboxes:/app/.sandboxes \
-#     -e ANTHROPIC_API_KEY=your-key \
-#     turbocat-backend
 #
 # =============================================================================
 
@@ -38,30 +23,23 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-COPY prisma ./prisma/
+# Copy package files from backend directory
+COPY backend/package.json backend/pnpm-lock.yaml* ./
+COPY backend/prisma ./prisma/
 
 # Install dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile
+RUN if [ ! -f pnpm-lock.yaml ]; then pnpm install; else pnpm install --frozen-lockfile; fi
 
-# Copy source code
-COPY . .
+# Copy source code from backend directory
+COPY backend/ ./
+
+# Generate Prisma client and build TypeScript
+RUN pnpm run build
 
 # =============================================================================
 # CRITICAL: Bundle .claude/ directory for Agent SDK filesystem requirements
 # =============================================================================
-# The Claude Agent SDK expects:
-# - .claude/skills/ directory for skill definitions
-# - Working directory with CLAUDE.md for project configuration
-# - Session storage directory for conversation persistence
-#
-# Note: .claude/ may be in parent directory in monorepo setup
-# Copy from both locations to ensure skills are available
-COPY .claude/ ./.claude/ 2>/dev/null || true
-
-# Generate Prisma client and build TypeScript
-RUN pnpm run build
+RUN mkdir -p ./.claude/skills
 
 # -----------------------------------------------------------------------------
 # Stage 2: Production Runner
@@ -93,9 +71,6 @@ COPY --from=builder /app/.claude ./.claude
 # =============================================================================
 # SDK Filesystem: Create sandbox storage directories
 # =============================================================================
-# These directories support the hybrid sandbox approach:
-# - .sandboxes/persistent: For project chats that need resumption
-# - .sandboxes/ephemeral: For one-off task/workflow executions
 RUN mkdir -p /app/.sandboxes/persistent && \
     mkdir -p /app/.sandboxes/ephemeral && \
     mkdir -p /app/logs

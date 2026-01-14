@@ -2,6 +2,7 @@
 # Turbocat Frontend Dockerfile
 # =============================================================================
 # Multi-stage build for Next.js production deployment
+# Works from monorepo root when deployed via Railway
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -14,11 +15,13 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
+# Copy package files from turbocat-agent directory
+# Railway uploads from monorepo root, so we need to handle both cases
+COPY turbocat-agent/package.json ./package.json
+COPY turbocat-agent/pnpm-lock.yaml* ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Create a minimal package.json if pnpm-lock doesn't exist
+RUN if [ ! -f pnpm-lock.yaml ]; then pnpm install; else pnpm install --frozen-lockfile; fi
 
 # -----------------------------------------------------------------------------
 # Stage 2: Builder
@@ -32,7 +35,9 @@ WORKDIR /app
 
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+
+# Copy source code from turbocat-agent directory
+COPY turbocat-agent/ ./
 
 # Set build-time environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
