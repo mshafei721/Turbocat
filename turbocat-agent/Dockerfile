@@ -20,8 +20,8 @@ WORKDIR /app
 COPY turbocat-agent/package.json ./package.json
 COPY turbocat-agent/pnpm-lock.yaml* ./
 
-# Create a minimal package.json if pnpm-lock doesn't exist
-RUN if [ ! -f pnpm-lock.yaml ]; then pnpm install; else pnpm install --frozen-lockfile; fi
+# Install dependencies (use --no-frozen-lockfile for monorepo compatibility)
+RUN pnpm install
 
 # -----------------------------------------------------------------------------
 # Stage 2: Builder

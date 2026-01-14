@@ -28,7 +28,7 @@ COPY backend/package.json backend/pnpm-lock.yaml* ./
 COPY backend/prisma ./prisma/
 
 # Install dependencies (including devDependencies for build)
-RUN if [ ! -f pnpm-lock.yaml ]; then pnpm install; else pnpm install --frozen-lockfile; fi
+RUN pnpm install
 
 # Copy source code from backend directory
 COPY backend/ ./
