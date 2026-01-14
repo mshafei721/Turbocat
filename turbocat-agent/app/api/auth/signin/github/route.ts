@@ -9,7 +9,9 @@ export async function GET(req: NextRequest): Promise<Response> {
   const session = await getSessionFromReq(req)
 
   const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
-  const redirectUri = `${req.nextUrl.origin}/api/auth/github/callback`
+  // Use configured app URL for production, fallback to request origin for development
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
+  const redirectUri = `${appUrl}/api/auth/github/callback`
 
   if (!clientId) {
     return Response.redirect(new URL('/?error=github_not_configured', req.url))

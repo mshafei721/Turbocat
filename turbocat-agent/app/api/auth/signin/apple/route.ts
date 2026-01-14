@@ -32,7 +32,9 @@ export async function GET(req: NextRequest): Promise<Response> {
     })
   }
 
-  const redirectUri = `${req.nextUrl.origin}/api/auth/callback/apple`
+  // Use configured app URL for production, fallback to request origin for development
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
+  const redirectUri = `${appUrl}/api/auth/callback/apple`
 
   // Build Apple authorization URL
   const params = new URLSearchParams({
