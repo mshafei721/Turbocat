@@ -37,6 +37,7 @@ import deploymentsRoutes from './routes/deployments';
 import analyticsRoutes from './routes/analytics';
 import executionsRoutes from './routes/executions';
 import publishingRoutes from './routes/publishing'; // Epic 4: Publishing Flow
+import agentSdkRoutes from './routes/agent'; // Agent SDK routes
 
 /**
  * Create and configure Express application
@@ -166,6 +167,9 @@ apiRouter.use('/executions', executionsRoutes);
 
 // Publishing routes (Epic 4: Publishing Flow)
 apiRouter.use('/publishing', publishingRoutes);
+
+// Agent SDK routes
+apiRouter.use('/agent', agentSdkRoutes);
 
 // =============================================================================
 // API DOCUMENTATION
