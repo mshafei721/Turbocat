@@ -265,4 +265,4 @@ router.post('/:id/cancel', requireAuth, async (req: Request, res: Response, next
   }
 });
 
-export default router;
+export default router as Router;

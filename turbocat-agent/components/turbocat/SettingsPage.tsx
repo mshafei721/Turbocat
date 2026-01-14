@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { OAuthConnectionSection } from '@/components/settings/oauth-connection-section'
 
 interface SettingsPageProps {
   user: {
@@ -262,32 +263,8 @@ export function SettingsPage({
             </CardContent>
           </Card>
 
-          {/* Security */}
-          <Card className="border-slate-800 bg-slate-900/50">
-            <CardHeader>
-              <CardTitle className="text-white">Security</CardTitle>
-              <CardDescription className="text-slate-400">
-                Manage your account security
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <SettingItem
-                icon={<Shield size={20} />}
-                title="Connected Accounts"
-                description="Manage OAuth connections"
-                action={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800"
-                    onClick={() => router.push('/profile')}
-                  >
-                    View
-                  </Button>
-                }
-              />
-            </CardContent>
-          </Card>
+          {/* OAuth Connected Accounts */}
+          <OAuthConnectionSection />
 
           {/* Danger Zone */}
           <Card className="border-red-900/50 bg-red-950/20">

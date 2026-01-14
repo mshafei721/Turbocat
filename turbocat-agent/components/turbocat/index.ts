@@ -44,6 +44,7 @@ export { ShareModal } from './ShareModal'
 export { ProjectCard } from './ProjectCard'
 export { EmptyState, NoProjectsEmptyState } from './EmptyState'
 export { PromptInput } from './PromptInput'
+export { SuggestedPrompts } from './SuggestedPrompts'
 
 // Animation Components
 export { AnimatedContainer, StaggerItem } from './AnimatedContainer'

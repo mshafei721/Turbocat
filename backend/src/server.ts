@@ -10,6 +10,7 @@
 import app from './app';
 import { logger } from './lib/logger';
 import { disconnectPrisma } from './lib/prisma';
+import publishingWorker from './workers/publishing.worker';
 
 // Server configuration
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -70,6 +71,17 @@ async function gracefulShutdown(signal: string): Promise<void> {
         }
       });
     });
+
+    // Close publishing worker (wait for current job to complete)
+    if (publishingWorker) {
+      logger.info('Closing publishing worker...');
+      try {
+        await publishingWorker.close();
+        logger.info('Publishing worker closed');
+      } catch (error) {
+        logger.error('Error closing publishing worker', { error });
+      }
+    }
 
     // Close database connections
     await disconnectPrisma();

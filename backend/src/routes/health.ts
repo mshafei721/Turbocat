@@ -261,4 +261,4 @@ router.get('/ready', async (_req: Request, res: Response) => {
   }
 });
 
-export default router;
+export default router as Router;

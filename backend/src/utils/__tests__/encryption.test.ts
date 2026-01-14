@@ -8,6 +8,7 @@
  * - isEncryptedData
  */
 
+import crypto from 'crypto';
 import * as encryption from '../encryption';
 
 // Mock logger
@@ -136,6 +137,17 @@ describe('Encryption Utilities', () => {
       expect(() => encryption.decrypt(encryptedData)).toThrow('Invalid IV length');
     });
 
+    it('should throw error for invalid auth tag length during decryption', () => {
+      const validIv = Buffer.from(crypto.randomBytes(12)).toString('base64');
+      const encryptedData: encryption.EncryptedData = {
+        iv: validIv,
+        content: 'some-content',
+        tag: 'short', // Invalid tag length
+      };
+
+      expect(() => encryption.decrypt(encryptedData)).toThrow('Invalid auth tag length');
+    });
+
     it('should throw error for tampered content (authentication failure)', () => {
       const encrypted = encryption.encrypt('original-value');
 
@@ -183,6 +195,40 @@ describe('Encryption Utilities', () => {
       const decrypted = encryption.decryptObject(encrypted);
 
       expect(decrypted).toEqual({});
+    });
+
+    it('should throw error when encryptObject fails (missing encryption key)', () => {
+      delete process.env.ENCRYPTION_KEY;
+
+      expect(() =>
+        encryption.encryptObject({
+          API_KEY: 'test-key',
+        }),
+      ).toThrow('Failed to encrypt field: API_KEY');
+    });
+
+    it('should throw error when decryptObject fails (invalid encrypted data)', () => {
+      const invalidEncrypted = {
+        API_KEY: {
+          iv: 'invalid-short-iv',
+          content: 'some-content',
+          tag: 'some-tag',
+        },
+      };
+
+      expect(() => encryption.decryptObject(invalidEncrypted)).toThrow(
+        'Failed to decrypt field: API_KEY',
+      );
+    });
+
+    it('should throw error when decryptObject fails (tampered auth tag)', () => {
+      const original = { SECRET: 'my-secret-value' };
+      const encrypted = encryption.encryptObject(original);
+
+      // Tamper with the auth tag
+      encrypted.SECRET!.tag = Buffer.from('tampered').toString('base64');
+
+      expect(() => encryption.decryptObject(encrypted)).toThrow('Failed to decrypt field: SECRET');
     });
   });
 

@@ -48,6 +48,14 @@ next-env.d.ts
 # Misc
 .turbo
 .cache/
+
+# Claude temporary files
+tmpclaude-*
+**/tmpclaude-*
+*.cwd
+
+# Claude local settings
+.claude/settings.local.json
 .eslintcache
 .stylelintcache
 

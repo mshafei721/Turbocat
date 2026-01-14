@@ -691,4 +691,4 @@ router.get('/:id/logs', requireAuth, async (req: Request, res: Response, next: N
   }
 });
 
-export default router;
+export default router as Router;
