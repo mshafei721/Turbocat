@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  // Note: 'standalone' output is only used for Docker deployments (Railway)
+  // Vercel handles this automatically, so we conditionally enable it
+  ...(process.env.RAILWAY_ENVIRONMENT ? { output: 'standalone' as const } : {}),
   images: {
     remotePatterns: [
       {
