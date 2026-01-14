@@ -3,13 +3,52 @@
  *
  * This module provides a wrapper around the @anthropic-ai/claude-agent-sdk
  * for use in the Turbocat backend services.
+ *
+ * Features:
+ * - Hybrid sandbox management (persistent for chats, ephemeral for tasks)
+ * - Session persistence with Redis-backed metadata
+ * - File-based conversation history (JSONL format)
+ * - Cloud-ready filesystem handling
  */
 
 import { getAgentConfig, validateConfig, getSkillsPaths } from './config';
 import type { AgentQueryOptions, AgentResult, AgentMessage, SkillDefinition } from './types';
 
+// Export types
 export * from './types';
+
+// Export configuration
 export { getAgentConfig, validateConfig, getSkillsPaths } from './config';
+
+// Export filesystem service
+export {
+  FilesystemService,
+  getFilesystemService,
+  initFilesystemService,
+  type SandboxConfig,
+  type SessionState,
+  type FilesystemConfig,
+} from './filesystem';
+
+// Export sandbox manager
+export {
+  SandboxManager,
+  getSandboxManager,
+  initSandboxManager,
+  type SandboxRequest,
+  type SandboxSession,
+  type SandboxStats,
+} from './sandbox-manager';
+
+// Export session persistence
+export {
+  SessionPersistenceService,
+  getSessionPersistence,
+  agentResultToTurn,
+  type ConversationTurn,
+  type ConversationSession,
+  type SessionSummary,
+} from './session-persistence';
 
 // Dynamic import for the Agent SDK to handle cases where it's not installed
 let sdkQuery: typeof import('@anthropic-ai/claude-agent-sdk').query | null = null;
