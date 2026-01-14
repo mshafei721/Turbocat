@@ -15,6 +15,12 @@ import fs from 'fs/promises';
 import { existsSync, mkdirSync } from 'fs';
 import crypto from 'crypto';
 import { logger } from '../../lib/logger';
+import {
+  isStorageConfigured,
+  uploadDirectory,
+  downloadDirectory,
+  deletePrefix,
+} from '../../lib/storage';
 
 // ============================================================================
 // Types
@@ -545,46 +551,137 @@ export class FilesystemService {
   // ==========================================================================
 
   /**
-   * Backup session data to S3
+   * Backup session data to cloud storage
    */
-  private async backupSessionToS3(sandbox: SandboxConfig): Promise<void> {
-    if (!this.config.enableS3Backup || !this.config.s3Bucket) {
-      return;
-    }
-
-    // This would integrate with AWS SDK
-    // For now, just log that backup would occur
-    logger.info('[FilesystemService] Would backup session to S3', {
-      sandboxId: sandbox.sandboxId,
-      bucket: this.config.s3Bucket,
-    });
-
-    // TODO: Implement actual S3 upload
-    // const s3 = new S3Client({ region: process.env.AWS_REGION });
-    // await s3.send(new PutObjectCommand({
-    //   Bucket: this.config.s3Bucket,
-    //   Key: `sessions/${sandbox.userId}/${sandbox.projectId}/${sandbox.sandboxId}.tar.gz`,
-    //   Body: createTarball(sandbox.sessionDir),
-    // }));
-  }
-
-  /**
-   * Restore session data from S3
-   */
-  async restoreSessionFromS3(
-    sandboxId: string,
-  ): Promise<boolean> {
-    if (!this.config.enableS3Backup || !this.config.s3Bucket) {
+  private async backupSessionToS3(sandbox: SandboxConfig): Promise<boolean> {
+    if (!this.config.enableS3Backup || !isStorageConfigured()) {
       return false;
     }
 
-    // TODO: Implement actual S3 download
-    logger.info('[FilesystemService] Would restore session from S3', {
-      sandboxId,
-      bucket: this.config.s3Bucket,
-    });
+    const keyPrefix = `sandboxes/${sandbox.userId}/${sandbox.projectId}/${sandbox.sandboxId}`;
 
-    return false;
+    try {
+      // Upload session directory
+      const sessionUploaded = await uploadDirectory(sandbox.sessionDir, `${keyPrefix}/sessions`, {
+        compress: true,
+      });
+
+      // Optionally upload workspace (user files)
+      const workspaceUploaded = await uploadDirectory(sandbox.workingDir, `${keyPrefix}/workspace`, {
+        compress: true,
+      });
+
+      logger.info('[FilesystemService] Backed up sandbox to cloud storage', {
+        sandboxId: sandbox.sandboxId,
+        sessionFiles: sessionUploaded,
+        workspaceFiles: workspaceUploaded,
+        keyPrefix,
+      });
+
+      return sessionUploaded > 0 || workspaceUploaded > 0;
+    } catch (error) {
+      logger.error('[FilesystemService] Backup failed', {
+        sandboxId: sandbox.sandboxId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Restore session data from cloud storage
+   */
+  async restoreSessionFromS3(sandboxId: string): Promise<boolean> {
+    if (!this.config.enableS3Backup || !isStorageConfigured()) {
+      return false;
+    }
+
+    const parts = this.parseSandboxId(sandboxId);
+    if (!parts) {
+      logger.warn('[FilesystemService] Invalid sandbox ID for restore', { sandboxId });
+      return false;
+    }
+
+    const keyPrefix = `sandboxes/${parts.userId}/${parts.projectId}/${sandboxId}`;
+    const baseDir = path.join(
+      this.config.sandboxBaseDir,
+      parts.type,
+      parts.userId,
+      parts.projectId,
+    );
+
+    try {
+      // Ensure directories exist
+      await fs.mkdir(path.join(baseDir, 'sessions'), { recursive: true });
+      await fs.mkdir(path.join(baseDir, 'workspace'), { recursive: true });
+
+      // Download session directory
+      const sessionDownloaded = await downloadDirectory(
+        `${keyPrefix}/sessions`,
+        path.join(baseDir, 'sessions'),
+        { decompress: true },
+      );
+
+      // Download workspace directory
+      const workspaceDownloaded = await downloadDirectory(
+        `${keyPrefix}/workspace`,
+        path.join(baseDir, 'workspace'),
+        { decompress: true },
+      );
+
+      if (sessionDownloaded > 0 || workspaceDownloaded > 0) {
+        // Setup claude directory after restore
+        await this.setupClaudeDirectory(path.join(baseDir, '.claude'));
+
+        logger.info('[FilesystemService] Restored sandbox from cloud storage', {
+          sandboxId,
+          sessionFiles: sessionDownloaded,
+          workspaceFiles: workspaceDownloaded,
+        });
+        return true;
+      }
+
+      logger.debug('[FilesystemService] No files found in cloud storage', {
+        sandboxId,
+        keyPrefix,
+      });
+      return false;
+    } catch (error) {
+      logger.error('[FilesystemService] Restore failed', {
+        sandboxId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Delete sandbox data from cloud storage
+   */
+  async deleteFromCloudStorage(sandboxId: string): Promise<boolean> {
+    if (!isStorageConfigured()) {
+      return false;
+    }
+
+    const parts = this.parseSandboxId(sandboxId);
+    if (!parts) return false;
+
+    const keyPrefix = `sandboxes/${parts.userId}/${parts.projectId}/${sandboxId}`;
+
+    try {
+      const deleted = await deletePrefix(keyPrefix);
+      logger.info('[FilesystemService] Deleted sandbox from cloud storage', {
+        sandboxId,
+        deletedFiles: deleted,
+      });
+      return deleted > 0;
+    } catch (error) {
+      logger.error('[FilesystemService] Cloud storage delete failed', {
+        sandboxId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      return false;
+    }
   }
 
   // ==========================================================================
