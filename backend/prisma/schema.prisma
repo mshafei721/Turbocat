@@ -147,30 +147,42 @@ enum HealthStatus {
   @@schema("backend")
 }
 
+enum PublishingStatus {
+  INITIATED  @map("initiated")
+  BUILDING   @map("building")
+  SUBMITTING @map("submitting")
+  SUBMITTED  @map("submitted")
+  FAILED     @map("failed")
+
+  @@schema("backend")
+}
+
 // =============================================================================
 // MODELS
 // =============================================================================
 
 /// User model - stores user account information and authentication details
 model User {
-  id              String    @id @default(uuid()) @db.Uuid
-  email           String    @unique @db.VarChar(255)
-  passwordHash    String?   @map("password_hash") @db.VarChar(255)
-  fullName        String?   @map("full_name") @db.VarChar(255)
-  avatarUrl       String?   @map("avatar_url")
-  role            UserRole  @default(USER)
-  isActive        Boolean   @default(true) @map("is_active")
-  emailVerified      Boolean   @default(false) @map("email_verified")
-  emailVerifiedAt    DateTime? @map("email_verified_at")
-  oauthProvider      String?   @map("oauth_provider") @db.VarChar(50)
-  oauthId            String?   @map("oauth_id") @db.VarChar(255)
-  oauthAccessToken   String?   @map("oauth_access_token")
-  oauthRefreshToken  String?   @map("oauth_refresh_token")
-  lastLoginAt        DateTime? @map("last_login_at")
-  preferences     Json      @default("{}")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-  deletedAt       DateTime? @map("deleted_at")
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String    @unique @db.VarChar(255)
+  passwordHash      String?   @map("password_hash") @db.VarChar(255)
+  fullName          String?   @map("full_name") @db.VarChar(255)
+  avatarUrl         String?   @map("avatar_url")
+  role              UserRole  @default(USER)
+  isActive              Boolean   @default(true) @map("is_active")
+  emailVerified         Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt       DateTime? @map("email_verified_at")
+  verificationToken     String?   @unique @map("verification_token") @db.VarChar(64)
+  verificationTokenExpiry DateTime? @map("verification_token_expiry")
+  oauthProvider         String?   @map("oauth_provider") @db.VarChar(50)
+  oauthId           String?   @map("oauth_id") @db.VarChar(255)
+  oauthAccessToken  String?   @map("oauth_access_token")
+  oauthRefreshToken String?   @map("oauth_refresh_token")
+  lastLoginAt       DateTime? @map("last_login_at")
+  preferences       Json      @default("{}")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
 
   // Relations
   agents      Agent[]
@@ -185,45 +197,45 @@ model User {
   @@index([role])
   @@index([oauthProvider, oauthId])
   @@index([createdAt(sort: Desc)])
-  @@schema("backend")
   @@map("users")
+  @@schema("backend")
 }
 
 /// Agent model - defines AI agents with their configurations and capabilities
 model Agent {
-  id                      String      @id @default(uuid()) @db.Uuid
-  name                    String      @db.VarChar(255)
-  description             String?
-  type                    AgentType
-  status                  AgentStatus @default(DRAFT)
-  version                 Int         @default(1)
-  parentId                String?     @map("parent_id") @db.Uuid
-  userId                  String      @map("user_id") @db.Uuid
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String      @db.VarChar(255)
+  description String?
+  type        AgentType
+  status      AgentStatus @default(DRAFT)
+  version     Int         @default(1)
+  parentId    String?     @map("parent_id") @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
 
   // Configuration
-  config                  Json        @default("{}")
-  capabilities            Json        @default("[]")
-  parameters              Json        @default("{}")
+  config       Json @default("{}")
+  capabilities Json @default("[]")
+  parameters   Json @default("{}")
 
   // Resource limits
-  maxExecutionTime        Int?        @default(300) @map("max_execution_time")
-  maxMemoryMb             Int?        @default(512) @map("max_memory_mb")
-  maxConcurrentExecutions Int?        @default(1) @map("max_concurrent_executions")
+  maxExecutionTime        Int? @default(300) @map("max_execution_time")
+  maxMemoryMb             Int? @default(512) @map("max_memory_mb")
+  maxConcurrentExecutions Int? @default(1) @map("max_concurrent_executions")
 
   // Metrics
-  totalExecutions         Int         @default(0) @map("total_executions")
-  successfulExecutions    Int         @default(0) @map("successful_executions")
-  failedExecutions        Int         @default(0) @map("failed_executions")
-  avgExecutionTimeMs      Int         @default(0) @map("avg_execution_time_ms")
+  totalExecutions      Int @default(0) @map("total_executions")
+  successfulExecutions Int @default(0) @map("successful_executions")
+  failedExecutions     Int @default(0) @map("failed_executions")
+  avgExecutionTimeMs   Int @default(0) @map("avg_execution_time_ms")
 
   // Metadata
-  tags                    String[]    @default([])
-  isPublic                Boolean     @default(false) @map("is_public")
-  isTemplate              Boolean     @default(false) @map("is_template")
+  tags       String[] @default([])
+  isPublic   Boolean  @default(false) @map("is_public")
+  isTemplate Boolean  @default(false) @map("is_template")
 
-  createdAt               DateTime    @default(now()) @map("created_at")
-  updatedAt               DateTime    @updatedAt @map("updated_at")
-  deletedAt               DateTime?   @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   // Relations
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -238,51 +250,51 @@ model Agent {
   @@index([isPublic])
   @@index([tags])
   @@index([createdAt(sort: Desc)])
-  @@schema("backend")
   @@map("agents")
+  @@schema("backend")
 }
 
 /// Workflow model - defines workflows that orchestrate multiple agents
 model Workflow {
-  id                   String         @id @default(uuid()) @db.Uuid
-  name                 String         @db.VarChar(255)
-  description          String?
-  userId               String         @map("user_id") @db.Uuid
-  status               WorkflowStatus @default(DRAFT)
-  version              Int            @default(1)
-  parentId             String?        @map("parent_id") @db.Uuid
+  id          String         @id @default(uuid()) @db.Uuid
+  name        String         @db.VarChar(255)
+  description String?
+  userId      String         @map("user_id") @db.Uuid
+  status      WorkflowStatus @default(DRAFT)
+  version     Int            @default(1)
+  parentId    String?        @map("parent_id") @db.Uuid
 
   // Workflow definition
-  definition           Json           @default("{}")
-  triggerConfig        Json           @default("{}") @map("trigger_config")
+  definition    Json @default("{}")
+  triggerConfig Json @default("{}") @map("trigger_config")
 
   // Scheduling
-  scheduleEnabled      Boolean        @default(false) @map("schedule_enabled")
-  scheduleCron         String?        @map("schedule_cron") @db.VarChar(100)
-  scheduleTimezone     String         @default("UTC") @map("schedule_timezone") @db.VarChar(50)
+  scheduleEnabled  Boolean @default(false) @map("schedule_enabled")
+  scheduleCron     String? @map("schedule_cron") @db.VarChar(100)
+  scheduleTimezone String  @default("UTC") @map("schedule_timezone") @db.VarChar(50)
 
   // Metrics
-  totalExecutions      Int            @default(0) @map("total_executions")
-  successfulExecutions Int            @default(0) @map("successful_executions")
-  failedExecutions     Int            @default(0) @map("failed_executions")
-  avgExecutionTimeMs   Int            @default(0) @map("avg_execution_time_ms")
-  lastExecutionAt      DateTime?      @map("last_execution_at")
+  totalExecutions      Int       @default(0) @map("total_executions")
+  successfulExecutions Int       @default(0) @map("successful_executions")
+  failedExecutions     Int       @default(0) @map("failed_executions")
+  avgExecutionTimeMs   Int       @default(0) @map("avg_execution_time_ms")
+  lastExecutionAt      DateTime? @map("last_execution_at")
 
   // Metadata
-  tags                 String[]       @default([])
-  isPublic             Boolean        @default(false) @map("is_public")
+  tags     String[] @default([])
+  isPublic Boolean  @default(false) @map("is_public")
 
   // Epic 2: Project fields
-  projectName          String?        @map("project_name") @db.VarChar(255)
-  platform             String?        @db.VarChar(50) // 'web' | 'mobile' | 'both'
-  selectedModel        String?        @map("selected_model") @db.VarChar(100)
-  thumbnailUrl         String?        @map("thumbnail_url")
-  previewCode          String?        @map("preview_code") @db.Text
-  previewError         String?        @map("preview_error") @db.Text
+  projectName   String? @map("project_name") @db.VarChar(255)
+  platform      String? @db.VarChar(50) // 'web' | 'mobile' | 'both'
+  selectedModel String? @map("selected_model") @db.VarChar(100)
+  thumbnailUrl  String? @map("thumbnail_url")
+  previewCode   String? @map("preview_code") @db.Text
+  previewError  String? @map("preview_error") @db.Text
 
-  createdAt            DateTime       @default(now()) @map("created_at")
-  updatedAt            DateTime       @updatedAt @map("updated_at")
-  deletedAt            DateTime?      @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   // Relations
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -292,43 +304,44 @@ model Workflow {
   executions   Execution[]
   deployments  Deployment[]
   chatMessages ChatMessage[] // Epic 2: Chat history
+  publishings  Publishing[] // Epic 4: Publishing flow
 
   @@index([userId])
   @@index([status])
   @@index([scheduleEnabled])
   @@index([tags])
   @@index([createdAt(sort: Desc)])
-  @@schema("backend")
   @@map("workflows")
+  @@schema("backend")
 }
 
 /// WorkflowStep model - defines individual steps within workflows
 model WorkflowStep {
-  id           String           @id @default(uuid()) @db.Uuid
-  workflowId   String           @map("workflow_id") @db.Uuid
-  agentId      String?          @map("agent_id") @db.Uuid
+  id         String  @id @default(uuid()) @db.Uuid
+  workflowId String  @map("workflow_id") @db.Uuid
+  agentId    String? @map("agent_id") @db.Uuid
 
-  stepKey      String           @map("step_key") @db.VarChar(100)
-  stepName     String           @map("step_name") @db.VarChar(255)
-  stepType     WorkflowStepType @map("step_type")
-  position     Int
+  stepKey  String           @map("step_key") @db.VarChar(100)
+  stepName String           @map("step_name") @db.VarChar(255)
+  stepType WorkflowStepType @map("step_type")
+  position Int
 
   // Configuration
-  config       Json             @default("{}")
-  inputs       Json             @default("{}")
-  outputs      Json             @default("{}")
+  config  Json @default("{}")
+  inputs  Json @default("{}")
+  outputs Json @default("{}")
 
   // Dependencies
-  dependsOn    String[]         @default([]) @map("depends_on")
+  dependsOn String[] @default([]) @map("depends_on")
 
   // Error handling
-  retryCount   Int              @default(0) @map("retry_count")
-  retryDelayMs Int              @default(1000) @map("retry_delay_ms")
-  timeoutMs    Int              @default(30000) @map("timeout_ms")
-  onError      ErrorHandling    @default(FAIL) @map("on_error")
+  retryCount   Int           @default(0) @map("retry_count")
+  retryDelayMs Int           @default(1000) @map("retry_delay_ms")
+  timeoutMs    Int           @default(30000) @map("timeout_ms")
+  onError      ErrorHandling @default(FAIL) @map("on_error")
 
-  createdAt    DateTime         @default(now()) @map("created_at")
-  updatedAt    DateTime         @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   workflow      Workflow       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
@@ -339,40 +352,40 @@ model WorkflowStep {
   @@index([workflowId])
   @@index([agentId])
   @@index([workflowId, position])
-  @@schema("backend")
   @@map("workflow_steps")
+  @@schema("backend")
 }
 
 /// Execution model - records of workflow executions
 model Execution {
-  id             String          @id @default(uuid()) @db.Uuid
-  workflowId     String          @map("workflow_id") @db.Uuid
-  userId         String          @map("user_id") @db.Uuid
+  id         String @id @default(uuid()) @db.Uuid
+  workflowId String @map("workflow_id") @db.Uuid
+  userId     String @map("user_id") @db.Uuid
 
-  status         ExecutionStatus @default(PENDING)
-  triggerType    TriggerType     @map("trigger_type")
-  triggerData    Json            @default("{}") @map("trigger_data")
+  status      ExecutionStatus @default(PENDING)
+  triggerType TriggerType     @map("trigger_type")
+  triggerData Json            @default("{}") @map("trigger_data")
 
   // Execution details
-  startedAt      DateTime?       @map("started_at")
-  completedAt    DateTime?       @map("completed_at")
-  durationMs     Int?            @map("duration_ms")
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  durationMs  Int?      @map("duration_ms")
 
   // Input/Output
-  inputData      Json            @default("{}") @map("input_data")
-  outputData     Json            @default("{}") @map("output_data")
+  inputData  Json @default("{}") @map("input_data")
+  outputData Json @default("{}") @map("output_data")
 
   // Results
-  stepsCompleted Int             @default(0) @map("steps_completed")
-  stepsFailed    Int             @default(0) @map("steps_failed")
-  stepsTotal     Int             @default(0) @map("steps_total")
+  stepsCompleted Int @default(0) @map("steps_completed")
+  stepsFailed    Int @default(0) @map("steps_failed")
+  stepsTotal     Int @default(0) @map("steps_total")
 
   // Error information
-  errorMessage   String?         @map("error_message")
-  errorStack     String?         @map("error_stack")
+  errorMessage String? @map("error_message")
+  errorStack   String? @map("error_stack")
 
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   workflow Workflow       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
@@ -384,28 +397,28 @@ model Execution {
   @@index([status])
   @@index([createdAt(sort: Desc)])
   @@index([completedAt(sort: Desc)])
-  @@schema("backend")
   @@map("executions")
+  @@schema("backend")
 }
 
 /// ExecutionLog model - detailed logs for each execution step
 model ExecutionLog {
-  id              String       @id @default(uuid()) @db.Uuid
-  executionId     String       @map("execution_id") @db.Uuid
-  workflowStepId  String?      @map("workflow_step_id") @db.Uuid
+  id             String  @id @default(uuid()) @db.Uuid
+  executionId    String  @map("execution_id") @db.Uuid
+  workflowStepId String? @map("workflow_step_id") @db.Uuid
 
-  level           LogLevel     @default(INFO)
-  message         String
-  metadata        Json         @default("{}")
+  level    LogLevel @default(INFO)
+  message  String
+  metadata Json     @default("{}")
 
   // Step execution details
-  stepKey         String?      @map("step_key") @db.VarChar(100)
-  stepStatus      StepStatus?  @map("step_status")
-  stepStartedAt   DateTime?    @map("step_started_at")
-  stepCompletedAt DateTime?    @map("step_completed_at")
-  stepDurationMs  Int?         @map("step_duration_ms")
+  stepKey         String?     @map("step_key") @db.VarChar(100)
+  stepStatus      StepStatus? @map("step_status")
+  stepStartedAt   DateTime?   @map("step_started_at")
+  stepCompletedAt DateTime?   @map("step_completed_at")
+  stepDurationMs  Int?        @map("step_duration_ms")
 
-  createdAt       DateTime     @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   execution    Execution     @relation(fields: [executionId], references: [id], onDelete: Cascade)
@@ -414,36 +427,36 @@ model ExecutionLog {
   @@index([executionId, createdAt])
   @@index([level])
   @@index([createdAt(sort: Desc)])
-  @@schema("backend")
   @@map("execution_logs")
+  @@schema("backend")
 }
 
 /// Template model - reusable templates for agents and workflows
 model Template {
-  id            String       @id @default(uuid()) @db.Uuid
-  name          String       @db.VarChar(255)
-  description   String?
-  category      String       @db.VarChar(100)
-  type          TemplateType
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @db.VarChar(255)
+  description String?
+  category    String       @db.VarChar(100)
+  type        TemplateType
 
-  userId        String?      @map("user_id") @db.Uuid
+  userId String? @map("user_id") @db.Uuid
 
   // Template content
-  templateData  Json         @map("template_data")
+  templateData Json @map("template_data")
 
   // Metadata
-  tags          String[]     @default([])
-  isOfficial    Boolean      @default(false) @map("is_official")
-  isPublic      Boolean      @default(false) @map("is_public")
+  tags       String[] @default([])
+  isOfficial Boolean  @default(false) @map("is_official")
+  isPublic   Boolean  @default(false) @map("is_public")
 
   // Usage stats
-  usageCount    Int          @default(0) @map("usage_count")
-  ratingAverage Decimal      @default(0) @map("rating_average") @db.Decimal(3, 2)
-  ratingCount   Int          @default(0) @map("rating_count")
+  usageCount    Int     @default(0) @map("usage_count")
+  ratingAverage Decimal @default(0) @map("rating_average") @db.Decimal(3, 2)
+  ratingCount   Int     @default(0) @map("rating_count")
 
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
-  deletedAt     DateTime?    @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   // Relations
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -454,48 +467,48 @@ model Template {
   @@index([isPublic])
   @@index([tags])
   @@index([usageCount(sort: Desc)])
-  @@schema("backend")
   @@map("templates")
+  @@schema("backend")
 }
 
 /// Deployment model - deployed instances of agents or workflows
 model Deployment {
-  id                 String           @id @default(uuid()) @db.Uuid
-  name               String           @db.VarChar(255)
-  description        String?
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @db.VarChar(255)
+  description String?
 
-  userId             String           @map("user_id") @db.Uuid
-  workflowId         String?          @map("workflow_id") @db.Uuid
-  agentId            String?          @map("agent_id") @db.Uuid
+  userId     String  @map("user_id") @db.Uuid
+  workflowId String? @map("workflow_id") @db.Uuid
+  agentId    String? @map("agent_id") @db.Uuid
 
-  environment        Environment      @default(PRODUCTION)
-  status             DeploymentStatus @default(STOPPED)
+  environment Environment      @default(PRODUCTION)
+  status      DeploymentStatus @default(STOPPED)
 
   // Configuration
-  config             Json             @default("{}")
-  environmentVars    Json             @default("{}") @map("environment_vars")
+  config          Json @default("{}")
+  environmentVars Json @default("{}") @map("environment_vars")
 
   // Endpoints
-  endpointUrl        String?          @map("endpoint_url")
-  apiKeyHash         String?          @map("api_key_hash") @db.VarChar(255)
+  endpointUrl String? @map("endpoint_url")
+  apiKeyHash  String? @map("api_key_hash") @db.VarChar(255)
 
   // Resource allocation
-  allocatedMemoryMb  Int              @default(512) @map("allocated_memory_mb")
-  allocatedCpuShares Int              @default(1024) @map("allocated_cpu_shares")
+  allocatedMemoryMb  Int @default(512) @map("allocated_memory_mb")
+  allocatedCpuShares Int @default(1024) @map("allocated_cpu_shares")
 
   // Lifecycle
-  deployedAt         DateTime?        @map("deployed_at")
-  lastHealthCheckAt  DateTime?        @map("last_health_check_at")
-  healthStatus       HealthStatus     @default(UNKNOWN) @map("health_status")
+  deployedAt        DateTime?    @map("deployed_at")
+  lastHealthCheckAt DateTime?    @map("last_health_check_at")
+  healthStatus      HealthStatus @default(UNKNOWN) @map("health_status")
 
   // Metrics
-  totalRequests      Int              @default(0) @map("total_requests")
-  totalErrors        Int              @default(0) @map("total_errors")
-  avgResponseTimeMs  Int              @default(0) @map("avg_response_time_ms")
+  totalRequests     Int @default(0) @map("total_requests")
+  totalErrors       Int @default(0) @map("total_errors")
+  avgResponseTimeMs Int @default(0) @map("avg_response_time_ms")
 
-  createdAt          DateTime         @default(now()) @map("created_at")
-  updatedAt          DateTime         @updatedAt @map("updated_at")
-  deletedAt          DateTime?        @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   // Relations
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -507,31 +520,31 @@ model Deployment {
   @@index([agentId])
   @@index([status])
   @@index([environment])
-  @@schema("backend")
   @@map("deployments")
+  @@schema("backend")
 }
 
 /// ApiKey model - API keys for programmatic access
 model ApiKey {
-  id                 String    @id @default(uuid()) @db.Uuid
-  userId             String    @map("user_id") @db.Uuid
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
 
-  name               String    @db.VarChar(255)
-  keyHash            String    @unique @map("key_hash") @db.VarChar(255)
-  keyPrefix          String    @map("key_prefix") @db.VarChar(20)
+  name      String @db.VarChar(255)
+  keyHash   String @unique @map("key_hash") @db.VarChar(255)
+  keyPrefix String @map("key_prefix") @db.VarChar(20)
 
-  scopes             String[]  @default([])
+  scopes String[] @default([])
 
-  isActive           Boolean   @default(true) @map("is_active")
-  expiresAt          DateTime? @map("expires_at")
-  lastUsedAt         DateTime? @map("last_used_at")
+  isActive   Boolean   @default(true) @map("is_active")
+  expiresAt  DateTime? @map("expires_at")
+  lastUsedAt DateTime? @map("last_used_at")
 
-  usageCount         Int       @default(0) @map("usage_count")
-  rateLimitPerMinute Int       @default(60) @map("rate_limit_per_minute")
+  usageCount         Int @default(0) @map("usage_count")
+  rateLimitPerMinute Int @default(60) @map("rate_limit_per_minute")
 
-  createdAt          DateTime  @default(now()) @map("created_at")
-  updatedAt          DateTime  @updatedAt @map("updated_at")
-  deletedAt          DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -540,26 +553,26 @@ model ApiKey {
   @@index([keyHash])
   @@index([keyPrefix])
   @@index([expiresAt])
-  @@schema("backend")
   @@map("api_keys")
+  @@schema("backend")
 }
 
 /// AuditLog model - comprehensive audit trail for all system operations
 model AuditLog {
-  id           String    @id @default(uuid()) @db.Uuid
-  userId       String?   @map("user_id") @db.Uuid
+  id     String  @id @default(uuid()) @db.Uuid
+  userId String? @map("user_id") @db.Uuid
 
-  action       String    @db.VarChar(100)
-  resourceType String    @map("resource_type") @db.VarChar(50)
-  resourceId   String?   @map("resource_id") @db.Uuid
+  action       String  @db.VarChar(100)
+  resourceType String  @map("resource_type") @db.VarChar(50)
+  resourceId   String? @map("resource_id") @db.Uuid
 
-  changes      Json      @default("{}")
-  metadata     Json      @default("{}")
+  changes  Json @default("{}")
+  metadata Json @default("{}")
 
-  ipAddress    String?   @map("ip_address")
-  userAgent    String?   @map("user_agent")
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
 
-  createdAt    DateTime  @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -568,28 +581,81 @@ model AuditLog {
   @@index([resourceType, resourceId])
   @@index([action])
   @@index([createdAt(sort: Desc)])
-  @@schema("backend")
   @@map("audit_logs")
+  @@schema("backend")
 }
 
 /// ChatMessage model - persistent chat history for projects
 /// Epic 2: Dashboard & Projects
 model ChatMessage {
-  id         String   @id @default(uuid()) @db.Uuid
-  workflowId String   @map("workflow_id") @db.Uuid
-  role       String   @db.VarChar(20) // 'user' | 'assistant' | 'system'
-  content    String   @db.Text
+  id         String @id @default(uuid()) @db.Uuid
+  workflowId String @map("workflow_id") @db.Uuid
+  role       String @db.VarChar(20) // 'user' | 'assistant' | 'system'
+  content    String @db.Text
 
   // Optional metadata
-  metadata   Json     @default("{}") @db.JsonB
-  toolCalls  Json     @default("[]") @map("tool_calls") @db.JsonB
+  metadata  Json @default("{}") @db.JsonB
+  toolCalls Json @default("[]") @map("tool_calls") @db.JsonB
 
-  createdAt  DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@index([workflowId, createdAt])
-  @@schema("backend")
   @@map("chat_messages")
+  @@schema("backend")
+}
+
+/// Publishing model - tracks app publishing to Apple App Store
+/// Epic 4: Publishing Flow
+model Publishing {
+  id         String @id @default(uuid()) @db.Uuid
+  workflowId String @map("workflow_id") @db.Uuid
+
+  // Status tracking
+  status        PublishingStatus @default(INITIATED)
+  statusMessage String?          @map("status_message")
+
+  // Apple Developer credentials (encrypted)
+  appleTeamId     String? @map("apple_team_id") @db.VarChar(50)
+  appleKeyId      String? @map("apple_key_id") @db.VarChar(50)
+  appleIssuerId   String? @map("apple_issuer_id") @db.VarChar(100)
+  applePrivateKey String? @map("apple_private_key") @db.Text
+
+  // Expo credentials (encrypted)
+  expoToken   String? @map("expo_token") @db.Text
+  expoBuildId String? @map("expo_build_id") @db.VarChar(255)
+
+  // App metadata
+  appName     String  @map("app_name") @db.VarChar(255)
+  bundleId    String  @map("bundle_id") @db.VarChar(255)
+  version     String  @default("1.0.0") @db.VarChar(50)
+  description String
+  category    String  @db.VarChar(100)
+  ageRating   String  @map("age_rating") @db.VarChar(10)
+  supportUrl  String? @map("support_url")
+  iconUrl     String? @map("icon_url")
+
+  // Build artifacts
+  ipaUrl    String? @map("ipa_url")
+  buildLogs String? @map("build_logs") @db.Text
+
+  // Timestamps
+  initiatedAt      DateTime  @default(now()) @map("initiated_at")
+  buildStartedAt   DateTime? @map("build_started_at")
+  buildCompletedAt DateTime? @map("build_completed_at")
+  submittedAt      DateTime? @map("submitted_at")
+  failedAt         DateTime? @map("failed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([status])
+  @@map("publishing")
+  @@schema("backend")
 }
