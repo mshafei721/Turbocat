@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd turbocat-agent && npm run build",
+  "devCommand": "cd turbocat-agent && npm run dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "outputDirectory": "turbocat-agent/.next"
+}
