@@ -13,6 +13,18 @@
 import { jest } from '@jest/globals';
 
 // ============================================================================
+// Mock Redis-dependent modules to prevent connection attempts during tests
+// ============================================================================
+
+// Mock publishing queue to prevent Redis connection attempts
+// This mock is applied globally to all tests (unit and integration)
+jest.mock('../lib/publishingQueue', () => ({
+  publishingQueue: null,
+  isPublishingQueueAvailable: jest.fn().mockReturnValue(false),
+  PUBLISHING_QUEUE_NAME: 'publishing-builds',
+}));
+
+// ============================================================================
 // Environment Configuration
 // ============================================================================
 
