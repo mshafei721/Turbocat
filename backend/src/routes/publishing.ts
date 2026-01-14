@@ -48,7 +48,7 @@ const initiatePublishingSchema = z.object({
     .min(10, 'Description too short (min 10 chars)')
     .max(4000, 'Description too long (max 4000 chars)'),
   category: z.string().min(1, 'Category is required'),
-  ageRating: z.enum(AgeRatingValues, { errorMap: () => ({ message: 'Invalid age rating' }) }),
+  ageRating: z.enum(AgeRatingValues, { message: 'Invalid age rating' }),
   supportUrl: z.string().url('Invalid support URL').optional(),
   iconUrl: z.string().url('Invalid icon URL').optional(),
 });

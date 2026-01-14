@@ -452,7 +452,7 @@ export class PublishingService {
       throw new ApiError(404, 'Publishing record not found', ErrorCodes.NOT_FOUND);
     }
 
-    if (publishing.status !== 'FAILED') {
+    if (publishing.status !== PublishingStatus.FAILED) {
       logger.error('[PublishingService] Invalid status for retry', {
         publishingId,
         status: publishing.status,
