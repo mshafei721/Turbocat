@@ -67,7 +67,7 @@ export function LandingPage({ user, className }: LandingPageProps) {
   }
 
   return (
-    <div className={cn('min-h-screen bg-slate-950', className)}>
+    <div className={cn('min-h-screen bg-background', className)}>
       {/* Navigation */}
       <LandingNav user={user} onSignIn={handleSignIn} />
 
@@ -180,7 +180,7 @@ export function LandingPage({ user, className }: LandingPageProps) {
           </div>
 
           {pendingPrompt && (
-            <p className="text-xs text-slate-500 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               Your idea will be saved and ready to build after signing in.
             </p>
           )}

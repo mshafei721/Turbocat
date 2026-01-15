@@ -134,10 +134,10 @@ export function PromptInput({
           <form onSubmit={handleSubmit}>
             <div
               className={cn(
-                'relative rounded-2xl border border-slate-700 bg-slate-900/80 backdrop-blur-sm',
-                'shadow-lg shadow-slate-950/50',
+                'relative rounded-2xl border border-border bg-card/80 backdrop-blur-sm',
+                'shadow-lg shadow-background/50',
                 'transition-all duration-200',
-                'hover:border-slate-600',
+                'hover:border-muted-foreground/50',
                 'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20',
                 (isLoading || disabled) && 'opacity-80 pointer-events-none'
               )}
@@ -154,7 +154,7 @@ export function PromptInput({
                 rows={1}
                 className={cn(
                   'w-full resize-none bg-transparent px-5 py-4 pr-32 text-base outline-none',
-                  'placeholder:text-slate-500',
+                  'placeholder:text-muted-foreground',
                   'disabled:cursor-not-allowed',
                   'min-h-[56px] max-h-[200px]'
                 )}
@@ -164,7 +164,7 @@ export function PromptInput({
               <div className="absolute bottom-2 right-2 flex items-center gap-1">
                 {/* Character Count */}
                 {prompt.length > 0 && (
-                  <span className="text-xs text-slate-500 mr-2">
+                  <span className="text-xs text-muted-foreground mr-2">
                     {prompt.length}/{maxLength}
                   </span>
                 )}
@@ -178,7 +178,7 @@ export function PromptInput({
                         variant="ghost"
                         size="icon"
                         className={cn(
-                          'h-8 w-8 text-slate-400 hover:text-slate-200',
+                          'h-8 w-8 text-muted-foreground hover:text-foreground',
                           hasAttachments && 'text-primary'
                         )}
                         disabled={isLoading}
@@ -200,7 +200,7 @@ export function PromptInput({
                         variant="ghost"
                         size="icon"
                         className={cn(
-                          'h-8 w-8 text-slate-400 hover:text-slate-200',
+                          'h-8 w-8 text-muted-foreground hover:text-foreground',
                           isRecording && 'text-red-500 bg-red-500/10'
                         )}
                         disabled={isLoading}
@@ -263,7 +263,7 @@ export function PromptInput({
 
           {/* AI Badge */}
           <div className="absolute -top-3 left-4">
-            <div className="flex items-center gap-1.5 rounded-full bg-slate-800 border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300">
+            <div className="flex items-center gap-1.5 rounded-full bg-muted border border-border px-3 py-1 text-xs font-medium text-foreground">
               <Sparkle size={12} className="text-primary" weight="fill" />
               AI Powered
             </div>
@@ -278,7 +278,7 @@ export function PromptInput({
             transition={{ duration: 0.3, delay: 0.2 }}
             className="mt-4"
           >
-            <p className="text-xs text-slate-500 mb-2">Try these ideas:</p>
+            <p className="text-xs text-muted-foreground mb-2">Try these ideas:</p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((suggestion, index) => (
                 <motion.button
@@ -289,9 +289,9 @@ export function PromptInput({
                   type="button"
                   onClick={() => handleSuggestionClick(suggestion)}
                   className={cn(
-                    'rounded-lg border border-slate-800 bg-slate-900/50 px-3 py-2 text-sm text-slate-400',
+                    'rounded-lg border border-border bg-card/50 px-3 py-2 text-sm text-muted-foreground',
                     'transition-all duration-200',
-                    'hover:border-slate-700 hover:bg-slate-800 hover:text-slate-200',
+                    'hover:border-border hover:bg-muted hover:text-foreground',
                     'focus:outline-none focus:ring-2 focus:ring-primary/20'
                   )}
                 >

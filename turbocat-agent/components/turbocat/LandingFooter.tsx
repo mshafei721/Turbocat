@@ -61,7 +61,7 @@ export function LandingFooter({ className }: LandingFooterProps) {
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       className={cn(
-        'border-t border-slate-800 bg-slate-950',
+        'border-t border-border bg-background',
         className
       )}
     >
@@ -75,7 +75,7 @@ export function LandingFooter({ className }: LandingFooterProps) {
             <Button
               variant="outline"
               size="sm"
-              className="mt-4 gap-2 border-slate-700 text-slate-400 hover:text-foreground"
+              className="mt-4 gap-2 border-border text-muted-foreground hover:text-foreground"
             >
               <DeviceMobile size={18} />
               Get the mobile app
@@ -86,7 +86,7 @@ export function LandingFooter({ className }: LandingFooterProps) {
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 lg:col-span-4">
             {Object.entries(footerLinks).slice(0, 4).map(([key, section]) => (
               <div key={key}>
-                <h3 className="mb-3 text-sm font-semibold text-slate-300">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">
                   {section.title}
                 </h3>
                 <ul className="space-y-2">
@@ -96,7 +96,7 @@ export function LandingFooter({ className }: LandingFooterProps) {
                         href={link.href}
                         target={'external' in link && link.external ? '_blank' : undefined}
                         rel={'external' in link && link.external ? 'noopener noreferrer' : undefined}
-                        className="text-sm text-slate-500 transition-colors hover:text-slate-300"
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {link.label}
                       </Link>
@@ -109,8 +109,8 @@ export function LandingFooter({ className }: LandingFooterProps) {
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 sm:flex-row">
-          <p className="text-sm text-slate-500">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
+          <p className="text-sm text-muted-foreground">
             All rights reserved &copy; {new Date().getFullYear()} Turbocat, Inc.
           </p>
 
@@ -124,7 +124,7 @@ export function LandingFooter({ className }: LandingFooterProps) {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-300"
+                  className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   aria-label={social.label}
                 >
                   <Icon size={18} />

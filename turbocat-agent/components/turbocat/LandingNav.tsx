@@ -7,6 +7,7 @@ import { List, X } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Logo } from './Logo'
+import { ThemeToggle } from './ThemeToggle'
 
 interface LandingNavProps {
   className?: string
@@ -32,7 +33,7 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-lg',
+        'fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg',
         className
       )}
     >
@@ -49,7 +50,7 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
               >
                 {link.label}
               </Button>
@@ -59,10 +60,11 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
 
         {/* Desktop Auth Buttons */}
         <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Button size="sm" variant="ghost" className="text-slate-300">
+                <Button size="sm" variant="ghost" className="text-foreground">
                   Dashboard
                 </Button>
               </Link>
@@ -71,7 +73,7 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
                   <img
                     src={user.avatar}
                     alt={user.name || user.username || 'User'}
-                    className="h-8 w-8 rounded-full border border-slate-700"
+                    className="h-8 w-8 rounded-full border border-border"
                   />
                 ) : (
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white">
@@ -85,7 +87,7 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-slate-300"
+                className="text-foreground"
                 onClick={onSignIn}
               >
                 Log in
@@ -114,21 +116,24 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="border-t border-slate-800 bg-slate-950 px-4 py-4 md:hidden"
+          className="border-t border-border bg-background px-4 py-4 md:hidden"
         >
           <div className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start text-slate-400"
+                  className="w-full justify-start text-muted-foreground"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </Button>
               </Link>
             ))}
-            <div className="my-2 border-t border-slate-800" />
+            <div className="my-2 flex items-center justify-between border-t border-border pt-2">
+              <span className="text-sm text-muted-foreground">Theme</span>
+              <ThemeToggle />
+            </div>
             {user ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-3 px-2 py-2">
@@ -136,14 +141,14 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
                     <img
                       src={user.avatar}
                       alt={user.name || user.username || 'User'}
-                      className="h-8 w-8 rounded-full border border-slate-700"
+                      className="h-8 w-8 rounded-full border border-border"
                     />
                   ) : (
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-medium text-white">
                       {(user.name || user.username || user.email || 'U')[0].toUpperCase()}
                     </div>
                   )}
-                  <span className="text-sm text-slate-300">
+                  <span className="text-sm text-foreground">
                     {user.name || user.username || user.email}
                   </span>
                 </div>
@@ -155,7 +160,7 @@ export function LandingNav({ className, user, onSignIn }: LandingNavProps) {
               <>
                 <Button
                   variant="ghost"
-                  className="w-full text-slate-300"
+                  className="w-full text-foreground"
                   onClick={onSignIn}
                 >
                   Log in

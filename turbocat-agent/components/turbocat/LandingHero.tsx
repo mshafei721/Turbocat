@@ -58,7 +58,7 @@ export function LandingHero({ className, onSubmit, isLoading }: LandingHeroProps
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-10 max-w-2xl text-lg text-slate-400 sm:text-xl"
+            className="mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl"
           >
             Describe what you want to build and watch it come to life
           </motion.p>
@@ -93,11 +93,11 @@ export function LandingHero({ className, onSubmit, isLoading }: LandingHeroProps
             <Button
               variant="ghost"
               size="sm"
-              className="gap-2 text-slate-500 hover:text-slate-300"
+              className="gap-2 text-muted-foreground hover:text-foreground"
             >
               <span className="text-primary">+</span>
               Enable Backend
-              <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 beta
               </span>
             </Button>
@@ -118,7 +118,7 @@ export function LandingHero({ className, onSubmit, isLoading }: LandingHeroProps
               <br />
               that builds apps
             </h2>
-            <p className="mb-8 text-lg text-slate-400">
+            <p className="mb-8 text-lg text-muted-foreground">
               Create native apps in{' '}
               <span className="text-primary">seconds</span> with AI
             </p>
@@ -127,11 +127,11 @@ export function LandingHero({ className, onSubmit, isLoading }: LandingHeroProps
             <Button
               size="lg"
               variant="secondary"
-              className="gap-3 rounded-xl bg-slate-800 hover:bg-slate-700"
+              className="gap-3 rounded-xl bg-muted hover:bg-muted/80"
             >
               <AppleLogo size={24} weight="fill" />
               <div className="flex flex-col items-start">
-                <span className="text-xs text-slate-400">Download on the</span>
+                <span className="text-xs text-muted-foreground">Download on the</span>
                 <span className="text-sm font-semibold">App Store</span>
               </div>
             </Button>
@@ -147,22 +147,22 @@ export function LandingHero({ className, onSubmit, isLoading }: LandingHeroProps
           >
             <div className="relative w-[280px] sm:w-[320px]">
               {/* Phone Frame */}
-              <div className="relative overflow-hidden rounded-[40px] border border-slate-700 bg-slate-900 p-2 shadow-2xl">
+              <div className="relative overflow-hidden rounded-[40px] border border-border bg-card p-2 shadow-2xl">
                 {/* Screen */}
-                <div className="aspect-[9/19] overflow-hidden rounded-[32px] bg-slate-950">
+                <div className="aspect-[9/19] overflow-hidden rounded-[32px] bg-background">
                   {/* Status Bar */}
                   <div className="flex items-center justify-between px-6 py-3">
-                    <span className="text-xs text-slate-400">10:39</span>
-                    <div className="h-6 w-20 rounded-full bg-slate-800" />
+                    <span className="text-xs text-muted-foreground">10:39</span>
+                    <div className="h-6 w-20 rounded-full bg-muted" />
                     <div className="flex items-center gap-1">
-                      <div className="h-3 w-3 rounded-full bg-slate-600" />
-                      <div className="h-3 w-5 rounded bg-slate-600" />
+                      <div className="h-3 w-3 rounded-full bg-muted-foreground/30" />
+                      <div className="h-3 w-5 rounded bg-muted-foreground/30" />
                     </div>
                   </div>
 
                   {/* App Content Preview */}
                   <div className="px-4 py-6">
-                    <p className="mb-6 text-lg text-slate-300">
+                    <p className="mb-6 text-lg text-foreground">
                       <span className="text-primary">D</span>escribe your
                       <br />
                       app idea....
@@ -173,7 +173,7 @@ export function LandingHero({ className, onSubmit, isLoading }: LandingHeroProps
                       {['Note taking app', 'Step tracking app', 'Airbnb UI clone', 'Tic-tac-toe game'].map((text, i) => (
                         <div
                           key={i}
-                          className="rounded-lg bg-slate-800/50 px-3 py-2 text-sm text-slate-400"
+                          className="rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
                         >
                           {text}
                         </div>
